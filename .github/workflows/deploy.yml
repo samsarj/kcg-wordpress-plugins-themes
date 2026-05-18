@@ -22,8 +22,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          # We need a small amount of history to compare the latest commit.
-          fetch-depth: 2
+          # Fetch full history so branch diffs against origin/main work reliably.
+          fetch-depth: 0
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.10.0
@@ -48,13 +48,16 @@ jobs:
           SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
           REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
 
-          # When on a feature branch, compare against main so the preview includes
-          # the full branch delta, not just the latest commit.
+          # When on a feature branch, compare against origin/main for a proper preview.
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             changed_files=$(git diff --name-only HEAD~1 HEAD || true)
           else
-            git fetch origin main --depth=1 || true
-            changed_files=$(git diff --name-only origin/main...HEAD || true)
+            git fetch origin main || true
+            changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+            if [ -z "${changed_files}" ]; then
+              echo "Could not compare against origin/main; falling back to latest commit only."
+              changed_files=$(git diff --name-only HEAD~1 HEAD || true)
+            fi
           fi
 
           echo "Changed files:"
