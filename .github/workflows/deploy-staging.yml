@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
-          local-dir: .
+          local-dir: ./
           remote-dir: /home/u143407698/domains/kcg.org.uk/public_html/wp-content-staging
           git-ftp-args: --delete
           exclude: |
