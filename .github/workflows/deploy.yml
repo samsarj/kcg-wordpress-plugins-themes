@@ -1,0 +1,72 @@
+name: Hostinger deploy
+
+# Trigger this workflow when code is pushed to main or the feature deploy branch.
+on:
+  push:
+    branches:
+      - main
+      - feature/deploy-workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # SSH connection values are stored in repository secrets.
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_DEST_ROOT: ${{ secrets.SSH_DEST_ROOT }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history so branch diffs against origin/main work reliably.
+          fetch-depth: 0
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          # Private key stored as a secret in GitHub.
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Sync all custom plugin/theme directories via rsync
+        run: |
+          set -euo pipefail
+
+          # On main, deploy for real. On feature/deploy-workflow, simulate with dry run.
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            RSYNC_DRYRUN=""
+          else
+            RSYNC_DRYRUN="--dry-run"
+          fi
+
+          SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
+          REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
+
+          # Deploy every plugin and theme directory present in the repository.
+          mapfile -t paths < <(find plugins themes -maxdepth 1 -mindepth 1 -type d | sort)
+
+          if [ ${#paths[@]} -eq 0 ]; then
+            echo "No plugin or theme directories found to deploy."
+            exit 0
+          fi
+
+          echo "Deploying directories:"
+          printf '%s\n' "${paths[@]}"
+
+          for path in "${paths[@]}"; do
+            echo "\nDeploying ${path}"
+            ssh $SSH_OPTS "${SSH_USER}@${SSH_HOST}" "mkdir -p '${SSH_DEST_ROOT}/${path}'"
+            rsync -avz ${RSYNC_DRYRUN} --delete \
+              --exclude='.git*' \
+              --exclude='.github/' \
+              --exclude='node_modules/' \
+              -e "ssh $SSH_OPTS" \
+              "./${path}/" "${REMOTE_BASE}/${path}/"
+          done
+        shell: bash
