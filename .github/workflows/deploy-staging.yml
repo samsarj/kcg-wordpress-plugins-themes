@@ -1,6 +1,9 @@
-name: Manual Hostinger deploy
+name: Hostinger staging deploy
 
 on:
+  push:
+    branches:
+      - feature/deploy-workflow
   workflow_dispatch:
     inputs:
       environment:
