@@ -33,7 +33,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: .
-          remote-dir: /public_html/wp-content
+          remote-dir: /home/u143407698/domains/kcg.org.uk/public_html/wp-content
           git-ftp-args: --delete
           exclude: |
             .git*
