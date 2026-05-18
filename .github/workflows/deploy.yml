@@ -1,28 +1,26 @@
-name: Deploy main to production
+name: Hostinger deploy
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+      - feature/deploy-workflow
 
 jobs:
-  validate:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Validate workflow
-        run: |
-          echo "Workflow parsed successfully on ${{ github.ref }}"
 
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - name: Set deploy mode
+        id: target
+        run: |
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          else
+            echo "dry_run=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Deploy wp-content to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@4.2.0
@@ -34,6 +32,8 @@ jobs:
           protocol: ftp
           local-dir: ./
           server-dir: wp-content/
+          dry-run: ${{ steps.target.outputs.dry_run }}
           exclude: |
-            .git*
-            .github*
+            **/.git*
+            **/.git*/**
+            **/.github/**
