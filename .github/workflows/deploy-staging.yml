@@ -21,7 +21,8 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./
-          server-dir: wp-content-staging/
+          server-dir: wp-content/
           exclude: |
             .git*
             .github*
+          dry-run: true
