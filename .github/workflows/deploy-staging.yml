@@ -31,7 +31,7 @@ jobs:
 
       - name: Deploy to staging
         if: ${{ github.event.inputs.environment == 'staging' }}
-        uses: SamKirkland/FTP-Deploy-Action@4.5.0
+        uses: SamKirkland/FTP-Deploy-Action@4.2.0
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -47,7 +47,7 @@ jobs:
 
       - name: Deploy to production
         if: ${{ github.event.inputs.environment == 'production' }}
-        uses: SamKirkland/FTP-Deploy-Action@4.5.0
+        uses: SamKirkland/FTP-Deploy-Action@4.2.0
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
