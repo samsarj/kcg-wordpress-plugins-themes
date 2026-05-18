@@ -23,3 +23,12 @@ add_action( 'after_setup_theme', 'kcg_wp_theme_remove_core_patterns' );
 function kcg_wp_theme_remove_core_patterns() {
 	remove_theme_support( 'core-block-patterns' );
 }
+
+add_action( 'enqueue_block_editor_assets', 'kcg_theme_editor_assets' );
+
+function kcg_theme_editor_assets() {
+	wp_enqueue_style(
+		'kcg-theme-editor',
+		get_theme_file_uri( 'assets/editor.css' )
+	);
+}
