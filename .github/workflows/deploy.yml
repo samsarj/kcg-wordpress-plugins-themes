@@ -9,31 +9,54 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_DEST_ROOT: ${{ secrets.SSH_DEST_ROOT }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Set deploy mode
-        id: target
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Sync changed custom plugins/themes via rsync
         run: |
+          set -euo pipefail
+
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            echo "dry_run=false" >> $GITHUB_OUTPUT
+            RSYNC_DRYRUN=""
           else
-            echo "dry_run=true" >> $GITHUB_OUTPUT
+            RSYNC_DRYRUN="--dry-run"
           fi
 
-      - name: Deploy wp-content to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.2.0
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          local-dir: ./
-          server-dir: wp-content/
-          dry-run: ${{ steps.target.outputs.dry_run }}
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
+          SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
+          REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
+
+          changed_files=$(git diff --name-only HEAD~1 HEAD || true)
+          mapfile -t paths < <(printf '%s\n' "${changed_files}" | grep -E '^(plugins|themes)/[^/]+' | awk -F'/' '{print $1"/"$2}' | sort -u)
+
+          if [ ${#paths[@]} -eq 0 ]; then
+            echo "No changed plugin/theme directories to deploy."
+            exit 0
+          fi
+
+          for path in "${paths[@]}"; do
+            echo "Deploying ${path}"
+            ssh $SSH_OPTS "${SSH_USER}@${SSH_HOST}" "mkdir -p '${SSH_DEST_ROOT}/${path}'"
+            rsync -avz ${RSYNC_DRYRUN} --delete \
+              --exclude='.git*' \
+              --exclude='.github/' \
+              --exclude='node_modules/' \
+              -e "ssh $SSH_OPTS" \
+              "./${path}/" "${REMOTE_BASE}/${path}/"
+          done
+        shell: bash
