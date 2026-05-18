@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoLight = document.getElementById("lottie-logo-light");
   const logoNormal = document.getElementById("lottie-logo-normal");
 
-  const themePath = window.location.origin + "/wp-content/themes/kcg-wp-theme-dev";
+  const themePath = window.location.origin + "/wp-content/themes/kcg-wp-theme";
   const lightAnimationPath = themePath + "/assets/anim/logo_kcg_unified_animation_light.json";
   const normalAnimationPath = themePath + "/assets/anim/logo_kcg_unified_animation.json";
   const segmentStart = 186;
