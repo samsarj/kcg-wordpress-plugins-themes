@@ -4,16 +4,6 @@ on:
   push:
     branches:
       - feature/deploy-workflow
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deploy target environment'
-        required: true
-        default: staging
-        type: choice
-        options:
-          - staging
-          - production
 
 jobs:
   deploy:
@@ -22,15 +12,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Validate environment
-        run: |
-          if [ "${{ github.event.inputs.environment }}" != "staging" ] && [ "${{ github.event.inputs.environment }}" != "production" ]; then
-            echo "Invalid environment: ${{ github.event.inputs.environment }}"
-            exit 1
-          fi
-
       - name: Deploy to staging
-        if: ${{ github.event.inputs.environment == 'staging' }}
         uses: SamKirkland/FTP-Deploy-Action@4.2.0
         with:
           server: ${{ secrets.FTP_HOST }}
@@ -40,22 +22,6 @@ jobs:
           protocol: ftp
           local-dir: .
           remote-dir: /home/u143407698/domains/kcg.org.uk/public_html/wp-content-staging
-          git-ftp-args: --delete
-          exclude: |
-            .git*
-            .github*
-
-      - name: Deploy to production
-        if: ${{ github.event.inputs.environment == 'production' }}
-        uses: SamKirkland/FTP-Deploy-Action@4.2.0
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftp
-          local-dir: .
-          remote-dir: /home/u143407698/domains/kcg.org.uk/public_html/wp-content
           git-ftp-args: --delete
           exclude: |
             .git*
