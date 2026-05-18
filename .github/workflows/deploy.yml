@@ -1,5 +1,6 @@
 name: Hostinger deploy
 
+# Trigger this workflow when code is pushed to main or the feature deploy branch.
 on:
   push:
     branches:
@@ -9,20 +10,25 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # SSH connection values are stored in repository secrets.
     env:
       SSH_HOST: ${{ secrets.SSH_HOST }}
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_DEST_ROOT: ${{ secrets.SSH_DEST_ROOT }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
+          # We need a small amount of history to compare the latest commit.
           fetch-depth: 2
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.10.0
         with:
+          # Private key stored as a secret in GitHub.
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Install rsync
@@ -32,6 +38,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # On main, actually deploy. On feature/deploy-workflow, do a dry run.
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             RSYNC_DRYRUN=""
           else
@@ -41,7 +48,19 @@ jobs:
           SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
           REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
 
-          changed_files=$(git diff --name-only HEAD~1 HEAD || true)
+          # When on a feature branch, compare against main so the preview includes
+          # the full branch delta, not just the latest commit.
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            changed_files=$(git diff --name-only HEAD~1 HEAD || true)
+          else
+            git fetch origin main --depth=1 || true
+            changed_files=$(git diff --name-only origin/main...HEAD || true)
+          fi
+
+          echo "Changed files:"
+          printf '%s\n' "${changed_files}"
+
+          # Convert changed files into a unique list of top-level plugin/theme dirs.
           mapfile -t paths < <(printf '%s\n' "${changed_files}" | grep -E '^(plugins|themes)/[^/]+' | awk -F'/' '{print $1"/"$2}' | sort -u)
 
           if [ ${#paths[@]} -eq 0 ]; then
@@ -49,10 +68,13 @@ jobs:
             exit 0
           fi
 
+          echo "Deploying directories:"
+          printf '%s\n' "${paths[@]}"
+
           for path in "${paths[@]}"; do
-            echo "Deploying ${path}"
+            echo "\nDeploying ${path}"
             ssh $SSH_OPTS "${SSH_USER}@${SSH_HOST}" "mkdir -p '${SSH_DEST_ROOT}/${path}'"
-            rsync -avz ${RSYNC_DRYRUN} --delete \
+            rsync -avz ${RSYNC_DRYRUN} --itemize-changes --stats --delete \
               --exclude='.git*' \
               --exclude='.github/' \
               --exclude='node_modules/' \
