@@ -34,11 +34,11 @@ jobs:
       - name: Install rsync
         run: sudo apt-get update && sudo apt-get install -y rsync
 
-      - name: Sync changed custom plugins/themes via rsync
+      - name: Sync all custom plugin/theme directories via rsync
         run: |
           set -euo pipefail
 
-          # On main, actually deploy. On feature/deploy-workflow, do a dry run.
+          # On main, deploy for real. On feature/deploy-workflow, simulate with dry run.
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             RSYNC_DRYRUN=""
           else
@@ -48,26 +48,11 @@ jobs:
           SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
           REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
 
-          # When on a feature branch, compare against origin/main for a proper preview.
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            changed_files=$(git diff --name-only HEAD~1 HEAD || true)
-          else
-            git fetch origin main || true
-            changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
-            if [ -z "${changed_files}" ]; then
-              echo "Could not compare against origin/main; falling back to latest commit only."
-              changed_files=$(git diff --name-only HEAD~1 HEAD || true)
-            fi
-          fi
-
-          echo "Changed files:"
-          printf '%s\n' "${changed_files}"
-
-          # Convert changed files into a unique list of top-level plugin/theme dirs.
-          mapfile -t paths < <(printf '%s\n' "${changed_files}" | grep -E '^(plugins|themes)/[^/]+' | awk -F'/' '{print $1"/"$2}' | sort -u)
+          # Deploy every plugin and theme directory present in the repository.
+          mapfile -t paths < <(find plugins themes -maxdepth 1 -mindepth 1 -type d | sort)
 
           if [ ${#paths[@]} -eq 0 ]; then
-            echo "No changed plugin/theme directories to deploy."
+            echo "No plugin or theme directories found to deploy."
             exit 0
           fi
 
@@ -77,7 +62,7 @@ jobs:
           for path in "${paths[@]}"; do
             echo "\nDeploying ${path}"
             ssh $SSH_OPTS "${SSH_USER}@${SSH_HOST}" "mkdir -p '${SSH_DEST_ROOT}/${path}'"
-            rsync -avz ${RSYNC_DRYRUN} --itemize-changes --stats --delete \
+            rsync -avz ${RSYNC_DRYRUN} --delete \
               --exclude='.git*' \
               --exclude='.github/' \
               --exclude='node_modules/' \
