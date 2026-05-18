@@ -293,6 +293,7 @@ class Elvanto_Swiper_API {
                 $event['date'] = get_date_from_gmt($service_date, 'Y-m-d');
                 $event['time'] = get_date_from_gmt($service_date, 'H:i:s');
             } else {
+                // Date only
                 $event['date'] = $service_date;
             }
         }
@@ -320,7 +321,7 @@ class Elvanto_Swiper_API {
         
         return $event;
     }
-
+    
     /**
      * Get the appropriate link_info for a service based on configuration
      */
