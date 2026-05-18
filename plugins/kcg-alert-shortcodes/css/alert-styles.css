@@ -1,0 +1,117 @@
+.alert {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem
+}
+
+.alert * {
+    margin: 0;
+    padding: 0;
+    width: fit-content;
+}
+
+.alert h4 {
+    color: inherit;
+}
+
+.alert a {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.alert-dismissible {
+    padding-right: 3rem
+}
+
+.alert-dismissible .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1.25rem 1rem;
+    color: inherit
+}
+
+.kcg-card.alert.alert-primary {
+    color: #084298;
+    background-color: #cfe2ff;
+    border-color: #b6d4fe;
+}
+
+.kcg-card.alert.alert-primary a {
+    color: #06357a;
+}
+
+.kcg-card.alert.alert-secondary {
+    color: #41464b;
+    background-color: #e2e3e5;
+    border-color: #d3d6d8;
+}
+
+
+.kcg-card.alert.alert-secondary a {
+    color: #34383c;
+}
+
+
+.kcg-card.alert.alert-success {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+}
+
+
+.kcg-card.alert.alert-success a {
+    color: #0c4128;
+}
+
+.kcg-card.alert.alert-info {
+    color: #055160;
+    background-color: #cff4fc;
+    border-color: #b6effb;
+}
+
+.kcg-card.alert.alert-info a {
+    color: #04414d;
+}
+
+.kcg-card.alert.alert-warning {
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+
+.kcg-card.alert.alert-warning a {
+    color: #523e02;
+}
+
+.kcg-card.alert.alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.kcg-card.alert.alert-danger a {
+    color: #6a1a21;
+}
+
+.kcg-card.alert.alert-light {
+    color: #636464;
+    background-color: #fefefe;
+    border-color: #fdfdfe;
+}
+
+.kcg-card.alert.alert-light a {
+    color: #4f4f4f;
+}
+
+.kcg-card.alert.alert-dark {
+    color: #141619;
+    background-color: #d3d3d4;
+    border-color: #bcbebf;
+}
+
+.kcg-card.alert.alert-dark a {
+    color: #101214;
+}

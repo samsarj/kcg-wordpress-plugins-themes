@@ -1,0 +1,21 @@
+/* Responsive Styles */
+
+/* CSS for handling cases where details need to be on new lines */
+@media (max-width: 936px) {
+    .sermon-details {
+        display: block; /* Forces block display on smaller screens */
+    }
+    
+    .sermon-details > *:not(:last-child)::after {
+        content: ""; /* Remove separator on smaller screens */
+    }
+    
+    .sermon-series {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sermon-series * {
+        text-align: center;
+    }
+}

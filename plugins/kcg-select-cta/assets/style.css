@@ -1,0 +1,80 @@
+/* KCG Select CTA Styles - Functional Select */
+.kcg-select-cta-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.kcg-cta-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #4A90E2;
+    padding: 20px 30px;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.kcg-cta-text {
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.kcg-select-wrapper {
+    position: relative;
+    min-width: 150px;
+}
+
+.kcg-auto-select {
+    background: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 16px;
+    color: #333;
+    min-width: 150px;
+    text-align: left;
+}
+
+.kcg-cta-button {
+    background: #E94B3C;
+    color: white;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .kcg-cta-content {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .kcg-cta-text {
+        font-size: 16px;
+    }
+    
+    .kcg-auto-select {
+        text-align: center;
+    }
+    
+    .kcg-cta-button {
+        padding: 12px 20px;
+        font-size: 14px;
+        width: 100%;
+        max-width: 200px;
+    }
+}

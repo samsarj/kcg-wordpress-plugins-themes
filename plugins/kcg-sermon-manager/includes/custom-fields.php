@@ -1,0 +1,188 @@
+<?php
+// Register Sermon Fields
+if (function_exists('acf_add_local_field_group')) {
+
+    // Sermon Fields
+    acf_add_local_field_group(array(
+        'key' => 'group_sermon_fields',
+        'title' => 'Sermon Fields',
+        'fields' => array(
+            array(
+                'key' => 'field_audio_file',
+                'label' => 'Audio File',
+                'name' => 'sermon_audio',
+                'type' => 'file',
+                'instructions' => 'Upload the audio file for this sermon.',
+                'required' => false,
+                'return_format' => 'array'
+            ),
+            array(
+                'key' => 'field_passage',
+                'label' => 'Passage',
+                'name' => 'sermon_passage',
+                'type' => 'text',
+            ),
+        ),
+        'location' => array(
+		array(
+			array(
+				'param' => 'post_type',
+				'operator' => '==',
+				'value' => 'sermon',
+			),
+		),
+	),
+	'menu_order' => 0,
+	'position' => 'normal',
+	'style' => 'default',
+	'label_placement' => 'top',
+	'instruction_placement' => 'label',
+	'active' => true,
+	'description' => '',
+    ));
+
+    acf_add_local_field_group(array(
+        'key' => 'group_series_details',
+        'title' => 'Series Details',
+        'fields' => array(
+            array(
+                'key' => 'field_series_image',
+                'label' => 'Image',
+                'name' => 'series_image',
+                'type' => 'image',
+                'instructions' => 'Upload an image for this series.',
+                'return_format' => 'array',
+            ),
+            array(
+                'key' => 'field_series_book',
+                'label' => 'Associated Book',
+                'name' => 'series_book',
+                'type' => 'select',
+                'choices' => array(
+                    '' => 'Topical', // Default option
+                    'Genesis' => 'Genesis',
+                    'Exodus' => 'Exodus',
+                    'Leviticus' => 'Leviticus',
+                    'Numbers' => 'Numbers',
+                    'Deuteronomy' => 'Deuteronomy',
+                    'Joshua' => 'Joshua',
+                    'Judges' => 'Judges',
+                    'Ruth' => 'Ruth',
+                    '1 Samuel' => '1 Samuel',
+                    '2 Samuel' => '2 Samuel',
+                    '1 Kings' => '1 Kings',
+                    '2 Kings' => '2 Kings',
+                    '1 Chronicles' => '1 Chronicles',
+                    '2 Chronicles' => '2 Chronicles',
+                    'Ezra' => 'Ezra',
+                    'Nehemiah' => 'Nehemiah',
+                    'Esther' => 'Esther',
+                    'Job' => 'Job',
+                    'Psalms' => 'Psalms',
+                    'Proverbs' => 'Proverbs',
+                    'Ecclesiastes' => 'Ecclesiastes',
+                    'Song of Songs' => 'Song of Songs',
+                    'Isaiah' => 'Isaiah',
+                    'Jeremiah' => 'Jeremiah',
+                    'Lamentations' => 'Lamentations',
+                    'Ezekiel' => 'Ezekiel',
+                    'Daniel' => 'Daniel',
+                    'Hosea' => 'Hosea',
+                    'Joel' => 'Joel',
+                    'Amos' => 'Amos',
+                    'Obadiah' => 'Obadiah',
+                    'Jonah' => 'Jonah',
+                    'Micah' => 'Micah',
+                    'Nahum' => 'Nahum',
+                    'Habakkuk' => 'Habakkuk',
+                    'Zephaniah' => 'Zephaniah',
+                    'Haggai' => 'Haggai',
+                    'Zechariah' => 'Zechariah',
+                    'Malachi' => 'Malachi',
+                    'Matthew' => 'Matthew',
+                    'Mark' => 'Mark',
+                    'Luke' => 'Luke',
+                    'John' => 'John',
+                    'Acts' => 'Acts',
+                    'Romans' => 'Romans',
+                    '1 Corinthians' => '1 Corinthians',
+                    '2 Corinthians' => '2 Corinthians',
+                    'Galatians' => 'Galatians',
+                    'Ephesians' => 'Ephesians',
+                    'Philippians' => 'Philippians',
+                    'Colossians' => 'Colossians',
+                    '1 Thessalonians' => '1 Thessalonians',
+                    '2 Thessalonians' => '2 Thessalonians',
+                    '1 Timothy' => '1 Timothy',
+                    '2 Timothy' => '2 Timothy',
+                    'Titus' => 'Titus',
+                    'Philemon' => 'Philemon',
+                    'Hebrews' => 'Hebrews',
+                    'James' => 'James',
+                    '1 Peter' => '1 Peter',
+                    '2 Peter' => '2 Peter',
+                    '1 John' => '1 John',
+                    '2 John' => '2 John',
+                    '3 John' => '3 John',
+                    'Jude' => 'Jude',
+                    'Revelation' => 'Revelation',
+                ),
+            ),
+            array(
+                'key' => 'field_series_title_in_image',
+                'label' => 'Title in Image',
+                'name' => 'series_title_in_image',
+                'type' => 'true_false',
+                'instructions' => 'Indicate whether the series title is included in the image.',
+                'default_value' => 1,
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'taxonomy',
+                    'operator' => '==',
+                    'value' => 'series',
+                ),
+            ),
+        ),
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+        'instruction_placement' => 'label',
+        'active' => true,
+        'description' => '',
+    ));
+    
+
+    acf_add_local_field_group(array(
+        'key' => 'group_speaker_details',
+        'title' => 'Speaker Details',
+        'fields' => array(
+            array(
+                'key' => 'field_speaker_image',
+                'label' => 'Image',
+                'name' => 'speaker_image',
+                'type' => 'image',
+                'instructions' => 'Upload a picture of the speaker.',
+            ),
+        ),
+        'location' => array(
+            array(
+                array(
+                    'param' => 'taxonomy',
+                    'operator' => '==',
+                    'value' => 'speaker',
+                ),
+            ),
+        ),
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+        'instruction_placement' => 'label',
+        'active' => true,
+        'description' => '',
+    ));
+}

@@ -1,0 +1,29 @@
+# Third-party plugins (everything non-kcg-)
+advanced-custom-fields/
+litespeed-cache/
+wordpress-importer/
+
+*-dev/
+
+# Default themes
+twentytwenty*/
+
+# Language files
+languages/
+
+index.php
+
+# uploads (VERY important)
+uploads/
+
+# cache / runtime
+cache/
+upgrade-temp-backup/
+debug.log
+
+# OS
+.DS_Store
+
+# node (if any plugin uses build tooling)
+node_modules/
+vendor/

@@ -1,0 +1,54 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "create-block/clickable-cover-card",
+	"version": "0.1.0",
+	"title": "Clickable Cover Card",
+	"category": "design",
+	"icon": "format-image",
+	"description": "A cover block that is fully clickable with hover overlay effects.",
+	"attributes": {
+		"heading": {
+			"type": "string",
+			"default": "Heading"
+		},
+		"text": {
+			"type": "string",
+			"default": "Paragraph text"
+		},
+		"overlayColor": {
+			"type": "string",
+			"default": "#000000"
+		},
+		"overlayOpacity": {
+			"type": "number",
+			"default": 0.4
+		},
+		"overlayHoverOpacity": {
+			"type": "number",
+			"default": 0.7
+		},
+		"imageUrl": {
+			"type": "string",
+			"default": ""
+		},
+		"linkUrl": {
+			"type": "string",
+			"default": ""
+		},
+		"linkTarget": {
+			"type": "string",
+			"default": "_self"
+		}
+	},
+	"supports": {
+		"color": {
+			"text": true,
+			"heading": true
+		}
+	},
+	"textdomain": "clickable-cover-card",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css"
+}

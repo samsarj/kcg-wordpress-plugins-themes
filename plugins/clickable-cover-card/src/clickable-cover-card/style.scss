@@ -1,0 +1,62 @@
+.clickable-cover-card {
+	position: relative;
+	box-sizing: border-box;
+	padding: 2rem;
+	color: white;
+	aspect-ratio: 16 / 9;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	text-align: center;
+}
+
+.clickable-cover-card .overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+	background-color: var(--overlay-color, rgb(0, 0, 0));
+	transition: opacity 0.3s;
+	opacity: var(--overlay-opacity, 0.6);
+}
+
+.clickable-cover-card:hover .overlay {
+	opacity: var(--hover-overlay-opacity, 0.8);
+}
+
+.clickable-cover-card .cover-link {
+	position: absolute;
+	inset: 0;
+	z-index: 4;
+	text-indent: -9999px;
+}
+
+.clickable-cover-card .cover-content {
+	width: 100%;
+	position: relative;
+	z-index: 3;
+}
+
+.clickable-cover-card .cover-content h3 {
+	margin: 0;
+	text-align: start;
+}
+
+.clickable-cover-card .cover-content p {
+	margin-top: 0.5rem;
+	margin-bottom: 0;
+	text-align: start;
+}
+
+@media screen and (max-width: 768px) {
+    .clickable-cover-card .cover-content p {
+        display: none;
+    }
+
+    .clickable-cover-card .cover-content h3 {
+        text-align: center !important;
+    }
+}

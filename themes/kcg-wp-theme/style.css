@@ -1,0 +1,113 @@
+/*
+Theme Name: King's Church Guildford
+Theme URI: https://github.com/samsarj/kcg-wp-theme
+GitHub Theme URI: https://github.com/samsarj/kcg-wp-theme
+Primary Branch: main
+Author: Sam Sarjudeen
+Author URI: https://github.com/samsarj
+Description: WordPress theme for King's Church Guildford.
+Requires at least: 6.9
+Tested up to: 6.9
+Requires PHP: 5.7
+Version: 2.4.2
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: kcg-wp-theme
+Tags: 
+*/
+
+html {
+  scroll-behavior: smooth;
+  /* Anchor link smooth scrolling */
+  scroll-padding-top: 10vh;
+  /* Adjust for sticky header */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+@media screen and (min-width: 1024px) {
+  .is-layout-grid {
+    grid-template-columns: repeat(3,
+        1fr) !important;
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  .is-layout-grid {
+    grid-template-columns: repeat(2,
+        1fr) !important;
+  }
+}
+
+a {
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  transform: scale(1.02);
+  filter: brightness(1.2);
+}
+
+a:active {
+  filter: brightness(0.8);
+  transform: scale(0.96);
+}
+
+a:where(:not(.wp-element-button)) {
+  color: inherit;
+  text-underline-offset: 0.2rem;
+  transition: all 0.3s;
+}
+
+a:where(:not(.wp-element-button)):hover {
+  text-underline-offset: 0.3rem;
+}
+
+/* Specific styles for hero text links */
+
+.hero-text a {
+  text-decoration: none;
+}
+
+.hero-text a:hover {
+  text-decoration: underline;
+}
+
+/* Fixes for column blocks and cover blocks on mobile devices */
+
+@media screen and (max-width: 768px) {
+  .wp-block-column>.wp-block-cover {
+    min-height: calc(9 / 16 * 100vw) !important;
+  }
+
+  .wp-block-columns.reverse-mobile {
+    flex-direction: column-reverse;
+  }
+}
+
+.kcg-card {
+  box-sizing: border-box;
+  background-color: white;
+  border: 1px solid var(--wp--preset--color--base);
+  border-radius: 1rem;
+  padding: 0.5rem;
+  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.full-height {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-top: 20vh;
+}
+
+.wpcf7 h5 {
+  margin: 0;
+}

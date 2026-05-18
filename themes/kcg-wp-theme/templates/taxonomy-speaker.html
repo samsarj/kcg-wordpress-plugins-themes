@@ -1,0 +1,46 @@
+<!-- wp:template-part {"slug":"header","theme":"kcg-wp-theme"} /-->
+
+<!-- wp:group {"tagName":"main","style":{"spacing":{"margin":{"top":"20vh"}}},"layout":{"type":"constrained"}} -->
+<main class="wp-block-group" style="margin-top:20vh"><!-- wp:query-title {"type":"archive","textAlign":"center"} /-->
+
+    <!-- wp:term-description {"textAlign":"center"} /-->
+
+    <!-- wp:query {"queryId":0,"query":{"perPage":10,"pages":0,"offset":0,"postType":"sermon","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"","inherit":true},"layout":{"type":"constrained"}} -->
+    <div class="wp-block-query"><!-- wp:post-template {"className":"sermon-cards"} -->
+        <!-- wp:group {"className":"kcg-card"} -->
+        <div class="wp-block-group kcg-card">
+            <!-- wp:group {"className":"sermon-card-content","style":{"layout":{"selfStretch":"fill","flexSize":null}}} -->
+            <div class="wp-block-group sermon-card-content"><!-- wp:post-title {"isLink":true} /-->
+
+                <!-- wp:post-terms {"term":"series","prefix":"Series: "} /-->
+
+                <!-- wp:post-content /-->
+            </div>
+            <!-- /wp:group -->
+
+            <!-- wp:template-part {"slug":"series-image","theme":"kcg-wp-theme"} /-->
+        </div>
+        <!-- /wp:group -->
+        <!-- /wp:post-template -->
+
+        <!-- wp:query-pagination {"layout":{"type":"flex","justifyContent":"center"}} -->
+        <!-- wp:query-pagination-previous /-->
+
+        <!-- wp:query-pagination-numbers /-->
+
+        <!-- wp:query-pagination-next /-->
+        <!-- /wp:query-pagination -->
+
+        <!-- wp:query-no-results -->
+        <!-- wp:paragraph {"placeholder":"Add text or blocks that will display when a query returns no results."} -->
+        <p>No sermons found.</p>
+        <!-- /wp:paragraph -->
+        <!-- /wp:query-no-results -->
+    </div>
+    <!-- /wp:query -->
+</main>
+<!-- /wp:group -->
+
+</main>
+
+<!-- wp:template-part {"slug":"footer","theme":"kcg-wp-theme","tagName":"footer"} /-->

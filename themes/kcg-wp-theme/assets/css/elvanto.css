@@ -1,0 +1,27 @@
+.elvanto-modal-bg {
+    position: fixed !important;
+}
+
+.elvanto-modal-wrapper {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.elvanto-modal {
+    position: fixed;
+    width: 80vw;
+}
+
+.elvanto-modal-body {
+    height: 50vh;
+}
+
+.elvanto-modal-body iframe {
+    height: 100%;
+}

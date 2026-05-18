@@ -1,0 +1,49 @@
+.divider-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 15vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.divider {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  shape-rendering: geometricPrecision;
+}
+
+.divider polygon {
+  filter: drop-shadow(rgba(0, 0, 0, 0.5) 0 0 1rem);
+}
+
+.layer-light polygon {
+  fill: var(--wp--preset--color--accent-1);
+}
+.layer-primary polygon {
+  fill: var(--wp--preset--color--primary);
+}
+.layer-secondary polygon {
+  fill: var(--wp--preset--color--secondary);
+}
+
+.layer-light {
+  animation: waveMoveLight 25s ease-in-out infinite;
+}
+.layer-primary {
+  animation: waveMovePrimary 20s ease-in-out infinite;
+}
+
+@keyframes waveMoveLight {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(30px); }
+}
+@keyframes waveMovePrimary {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(20px); }
+}

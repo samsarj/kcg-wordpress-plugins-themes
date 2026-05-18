@@ -1,0 +1,16 @@
+/* Latest Sermon Styles */
+
+.latest {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wp--preset--spacing--40);
+}
+
+.latest-sermon {
+    text-align: center;
+    width: 100%;
+}
+
+.latest-sermon h3 {
+    margin: 0;
+}

@@ -1,0 +1,74 @@
+/* Single Sermon Layout */
+
+.sermon-main {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sermon-details {
+    margin: var(--wp--preset--spacing--40) 0;
+}
+
+.sermon-excerpt {
+    margin-bottom: var(--wp--preset--spacing--40);
+}
+
+.sermon-main audio {
+    width: 80vw;
+    max-width: 800px;
+    margin-bottom: var(--wp--preset--spacing--40);
+}
+
+.sermon-main .sermon-audio p {
+    margin-top: 0;
+    margin-bottom: var(--wp--preset--spacing--40);
+}
+
+
+a.series-info-full {
+    text-decoration: none;
+}
+
+.series-info-full .series-details,
+.sermon-card-content {
+    padding-left: 1rem;
+    padding-right: 0.5rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: start;
+}
+
+.series-info-full .series-details * {
+    margin: 0;
+}
+
+.series-info-full .series-image,
+.series-image {
+    display: block;
+    margin: 0;
+    width: 9rem;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
+.series-info-full .sermon-audio p {
+    margin-bottom: var(--wp--preset--spacing--20);
+}
+
+
+.sermon-card-content>* {
+    margin: 0;
+}
+
+.sermon-card-content .sermon-details {
+    margin: 0;
+}
+
+.sermon-card-content {
+    align-items: start;
+}
