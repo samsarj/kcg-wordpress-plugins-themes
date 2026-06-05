@@ -16,11 +16,11 @@ Text Domain: kcg-wp-theme
 Tags: 
 */
 
+/* Smooth anchor scrolling and padding */
+
 html {
   scroll-behavior: smooth;
-  /* Anchor link smooth scrolling */
   scroll-padding-top: 10vh;
-  /* Adjust for sticky header */
 }
 
 *,
@@ -43,6 +43,8 @@ html {
         1fr) !important;
   }
 }
+
+/* Global styles for links */
 
 a {
   transition: all 0.3s ease;
@@ -88,7 +90,15 @@ a:where(:not(.wp-element-button)):hover {
   .wp-block-columns.reverse-mobile {
     flex-direction: column-reverse;
   }
+  
+  /* Utility class for centering text on mobile devices */
+  .is-mobile-center {
+    text-align: center !important;
+  }
+
 }
+
+/* Card styles for plugin usage sections */
 
 .kcg-card {
   box-sizing: border-box;
@@ -102,11 +112,15 @@ a:where(:not(.wp-element-button)):hover {
   transition: all 0.3s;
 }
 
+/* Full height utility class for hero sections */
+
 .full-height {
   min-height: 100vh;
   min-height: 100svh;
   padding-top: 20vh;
 }
+
+/* Fixes for Contact Form 7 plugin */
 
 .wpcf7 h5 {
   margin: 0;
