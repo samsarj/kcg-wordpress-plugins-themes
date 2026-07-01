@@ -134,9 +134,17 @@ function bootstrap_alert_shortcode($atts) {
         $show_title = get_field('alert_title_visibility');
         $hidden = get_field('alert_hidden');
         $expiry = get_field('alert_expiry');
-        
-        // Check hidden and expiry status
+
+        // If the ACF field didn't save or isn't present, default to showing the title
+        if ($show_title === null || $show_title === '') {
+            $show_title = true;
+        } else {
+            $show_title = (bool) $show_title;
+        }
+
+        // Check hidden and expiry status; reset postdata before returning early
         if ($hidden || ($expiry && strtotime($expiry) < time())) {
+            wp_reset_postdata();
             return ''; // Return empty if hidden or expired
         }
 
@@ -151,8 +159,9 @@ function bootstrap_alert_shortcode($atts) {
         </div>
         <?php
         
+        $output = ob_get_clean();
         wp_reset_postdata();
-        return ob_get_clean();
+        return $output;
     } else {
         return '';
     }
