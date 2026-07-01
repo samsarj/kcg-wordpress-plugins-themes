@@ -1,29 +1,15 @@
-# Third-party plugins (everything non-kcg-)
-advanced-custom-fields/
-litespeed-cache/
-wordpress-importer/
+# Ignore everything
+*
 
-*-dev/
+# Commit KCG plugins (everything kcg-)
+!plugins/
+!plugins/kcg-*/
+!plugins/kcg-*/**
 
-# Default themes
-twentytwenty*/
+# Commit KCG theme (everything kcg-)
+!themes/
+!themes/kcg-*/
+!themes/kcg-*/**
 
-# Language files
-languages/
-
-index.php
-
-# uploads (VERY important)
-uploads/
-
-# cache / runtime
-cache/
-upgrade-temp-backup/
-debug.log
-
-# OS
-.DS_Store
-
-# node (if any plugin uses build tooling)
 node_modules/
-vendor/
+dist/
