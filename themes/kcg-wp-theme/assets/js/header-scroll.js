@@ -4,21 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoLight = document.getElementById("lottie-logo-light");
   const logoNormal = document.getElementById("lottie-logo-normal");
 
-  // const currentScript =
-  //   document.currentScript ||
-  //   document.querySelector('script[src*="header-scroll.js"]');
-  // const scriptUrl = currentScript
-  //   ? currentScript.src
-  //   : window.location.origin +
-  //     "/wp-content/themes/kcg-wp-theme/assets/js/header-scroll.js";
-  // const lightAnimationPath = new URL(
-  //   "../anim/logo_kcg_unified_animation_light.json",
-  //   scriptUrl,
-  // ).href;
-  // const normalAnimationPath = new URL(
-  //   "../anim/logo_kcg_unified_animation.json",
-  //   scriptUrl,
-  // ).href;
+  if (logo) {
+    // Keep fallback logo visible until the correct animation frame is ready.
+    logo.classList.remove("ready");
+  }
 
   const lightAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation_light.json";
   const normalAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation.json";
@@ -30,27 +19,34 @@ document.addEventListener("DOMContentLoaded", () => {
     !logoNormal ||
     typeof window.lottie === "undefined"
   ) {
-    console.warn(
-      "Header scroll script aborted: missing DOM elements or lottie.",
-    );
+    console.warn("Header scroll script aborted: missing DOM elements or lottie.");
     return;
   }
 
-  const setLogoReady = () => {
-    if (lightLoaded || normalLoaded) {
-      logo.classList.add("ready");
-    }
-  };
   const segmentStart = 186;
   const segmentEnd = 270;
+  const staticSegmentStart = segmentStart - 1;
+  const staticSegmentEnd = segmentEnd - 1;
   const threshold = (20 * window.innerHeight) / 100;
+  const isPageTemplate = document.body.classList.contains("page");
   let isScrolled = window.scrollY > threshold;
-  let isAnimating = false;
+  let scrollStateInitialized = false;
   let ticking = false;
   let lightAnimation;
   let normalAnimation;
   let lightLoaded = false;
   let normalLoaded = false;
+
+  const getLogoState = (scrolled = isScrolled) => {
+    if (isPageTemplate && !scrolled) {
+      return { showNormal: false, segment: staticSegmentStart };
+    }
+
+    return {
+      showNormal: true,
+      segment: scrolled ? staticSegmentEnd : staticSegmentStart,
+    };
+  };
 
   const createAnimation = (container, path, onLoad) => {
     const anim = lottie.loadAnimation({
@@ -63,75 +59,123 @@ document.addEventListener("DOMContentLoaded", () => {
         preserveAspectRatio: "xMinYMid meet",
       },
     });
+
     anim.addEventListener("DOMLoaded", () => {
       const segmentFrames = segmentEnd - segmentStart;
       const fps = anim.animationData.fr;
       anim.setSpeed(segmentFrames / fps);
       onLoad(anim);
     });
-    anim.addEventListener("complete", () => {
-      if (isAnimating) {
-        isAnimating = false;
-      }
-    });
+
     return anim;
   };
 
-  const initializeLightAnimation = () => {
-    lightAnimation = createAnimation(logoLight, lightAnimationPath, (anim) => {
-      lightLoaded = true;
-      anim.goToAndStop(segmentStart - 1, true);
-      setLogoReady();
-    });
+  const setLogoVisibility = (showNormal) => {
+    logoLight.style.opacity = showNormal ? "0" : "1";
+    logoNormal.style.opacity = showNormal ? "1" : "0";
   };
 
-  const initializeNormalAnimation = () => {
-    normalAnimation = createAnimation(
-      logoNormal,
-      normalAnimationPath,
-      (anim) => {
-        normalLoaded = true;
-        anim.goToAndStop(segmentStart - 1, true);
-        setLogoReady();
-      },
-    );
+  const setLogoReady = (isReady) => {
+    logo.classList.toggle("ready", isReady);
   };
 
-  const switchToNormal = () => {
+  const initialLogoState = getLogoState(isScrolled);
+  setLogoVisibility(initialLogoState.showNormal);
+
+  const setInitialLogoSegment = () => {
+    const state = getLogoState(isScrolled);
+    if (state.showNormal) {
+      if (!normalLoaded) {
+        setLogoReady(false);
+        return;
+      }
+      setLogoVisibility(true);
+      normalAnimation.goToAndStop(state.segment, true);
+    } else {
+      if (!lightLoaded) {
+        setLogoReady(false);
+        return;
+      }
+      setLogoVisibility(false);
+      lightAnimation.goToAndStop(state.segment, true);
+    }
+
+    setLogoReady(true);
+  };
+
+  const playSegments = (anim, from, to) => {
+    anim.goToAndStop(from, true);
+    anim.playSegments([from, to], true);
+  };
+
+  const switchToNormal = (playForward = true) => {
     if (!normalLoaded) {
+      setLogoReady(false);
       return;
     }
-    logoLight.style.opacity = "0";
-    logoNormal.style.opacity = "1";
-    normalAnimation.goToAndStop(segmentStart - 1, true);
-    normalAnimation.playSegments([segmentStart, segmentEnd], true);
-    isAnimating = true;
+
+    setLogoVisibility(true);
+    const [from, to] = playForward
+      ? [segmentStart, segmentEnd]
+      : [segmentEnd, segmentStart];
+    playSegments(normalAnimation, from, to);
   };
 
   const switchToLight = () => {
     if (!lightLoaded) {
+      setLogoReady(false);
       return;
     }
-    logoLight.style.opacity = "1";
-    logoNormal.style.opacity = "0";
-    lightAnimation.goToAndStop(segmentStart - 1, true);
-    lightAnimation.playSegments([segmentEnd, segmentStart], true);
-    isAnimating = true;
+
+    setLogoVisibility(false);
+    playSegments(lightAnimation, segmentEnd, segmentStart);
+  };
+
+  const setScrolledState = (scrolled) => {
+    if (!scrollStateInitialized) {
+      isScrolled = scrolled;
+      header.classList.toggle("scrolled", scrolled);
+      setInitialLogoSegment();
+      scrollStateInitialized = true;
+      return;
+    }
+
+    if (scrolled === isScrolled) {
+      return;
+    }
+
+    header.classList.toggle("scrolled", scrolled);
+
+    if (isPageTemplate) {
+      if (scrolled) {
+        switchToNormal(true);
+      } else {
+        switchToLight();
+      }
+    } else {
+      switchToNormal(scrolled);
+    }
+
+    isScrolled = scrolled;
   };
 
   const updateHeader = () => {
-    const currentY = window.scrollY;
-    const shouldBeScrolled = currentY > threshold;
+    const shouldBeScrolled = window.scrollY > threshold;
+    setScrolledState(shouldBeScrolled);
+  };
 
-    if (shouldBeScrolled && !isScrolled) {
-      header.classList.add("scrolled");
-      switchToNormal();
-      isScrolled = true;
-    } else if (!shouldBeScrolled && isScrolled) {
-      header.classList.remove("scrolled");
-      switchToLight();
-      isScrolled = false;
-    }
+  const initializeLightAnimation = () => {
+    lightAnimation = createAnimation(logoLight, lightAnimationPath, () => {
+      lightLoaded = true;
+      setInitialLogoSegment();
+    });
+  };
+
+  const initializeNormalAnimation = () => {
+    normalAnimation = createAnimation(logoNormal, normalAnimationPath, () => {
+      normalLoaded = true;
+      setInitialLogoSegment();
+    });
   };
 
   initializeLightAnimation();
@@ -145,16 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add cursor pointer style to indicate it's clickable
   logo.style.cursor = "pointer";
 
-  if (isScrolled) {
-    header.classList.add("scrolled");
-    logoLight.style.opacity = "0";
-    logoNormal.style.opacity = "1";
-  } else {
-    logoLight.style.opacity = "1";
-    logoNormal.style.opacity = "0";
-  }
-
-  const requestTick = () => {
+  const scheduleUpdate = () => {
     if (!ticking) {
       requestAnimationFrame(() => {
         updateHeader();
@@ -164,8 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  window.addEventListener("scroll", requestTick);
+  window.addEventListener("scroll", scheduleUpdate);
+  window.addEventListener("load", () => requestAnimationFrame(updateHeader));
+  window.addEventListener("pageshow", () => requestAnimationFrame(updateHeader));
 
-  // Check initial scroll position on page load
-  updateHeader();
+  requestAnimationFrame(updateHeader);
 });

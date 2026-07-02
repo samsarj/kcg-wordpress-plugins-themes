@@ -1,7 +1,7 @@
 /* Responsive Styles */
 
 /* CSS for handling cases where details need to be on new lines */
-@media (max-width: 936px) {
+@media (max-width: 768px) {
     .sermon-details {
         display: block; /* Forces block display on smaller screens */
     }
