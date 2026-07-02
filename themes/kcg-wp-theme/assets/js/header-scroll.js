@@ -1,35 +1,185 @@
 document.addEventListener("DOMContentLoaded", () => {
   const header = document.querySelector(".header-inner");
-  const logo = document.getElementById("lottie-logo");
+  const logo = document.querySelector(".site-logo");
+  const logoLight = document.getElementById("lottie-logo-light");
+  const logoNormal = document.getElementById("lottie-logo-normal");
 
-  const themePath = window.location.origin + "/wp-content/themes/kcg-wp-theme";
-  const animationPath = themePath + "/assets/anim/logo_kcg_unified_animation.json";
+  if (logo) {
+    // Keep fallback logo visible until the correct animation frame is ready.
+    logo.classList.remove("ready");
+  }
+
+  const lightAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation_light.json";
+  const normalAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation.json";
+
+  if (
+    !header ||
+    !logo ||
+    !logoLight ||
+    !logoNormal ||
+    typeof window.lottie === "undefined"
+  ) {
+    console.warn("Header scroll script aborted: missing DOM elements or lottie.");
+    return;
+  }
+
   const segmentStart = 186;
   const segmentEnd = 270;
-  
-  const animation = lottie.loadAnimation({
-    container: logo,
-    renderer: "svg",
-    loop: false,
-    autoplay: false,
-    path: animationPath,
-  });
+  const staticSegmentStart = segmentStart - 1;
+  const staticSegmentEnd = segmentEnd - 1;
+  const threshold = (20 * window.innerHeight) / 100;
+  const isPageTemplate = document.body.classList.contains("page");
+  let isScrolled = window.scrollY > threshold;
+  let scrollStateInitialized = false;
+  let ticking = false;
+  let lightAnimation;
+  let normalAnimation;
+  let lightLoaded = false;
+  let normalLoaded = false;
 
-  animation.addEventListener("DOMLoaded", () => {
-    // Set initial frame based on scroll position
-    const threshold = (20 * window.innerHeight) / 100;
-    if (window.scrollY > threshold) {
-      animation.goToAndStop(segmentEnd - 1, true);
+  const getLogoState = (scrolled = isScrolled) => {
+    if (isPageTemplate && !scrolled) {
+      return { showNormal: false, segment: staticSegmentStart };
+    }
+
+    return {
+      showNormal: true,
+      segment: scrolled ? staticSegmentEnd : staticSegmentStart,
+    };
+  };
+
+  const createAnimation = (container, path, onLoad) => {
+    const anim = lottie.loadAnimation({
+      container,
+      renderer: "svg",
+      loop: false,
+      autoplay: false,
+      path,
+      rendererSettings: {
+        preserveAspectRatio: "xMinYMid meet",
+      },
+    });
+
+    anim.addEventListener("DOMLoaded", () => {
+      const segmentFrames = segmentEnd - segmentStart;
+      const fps = anim.animationData.fr;
+      anim.setSpeed(segmentFrames / fps);
+      onLoad(anim);
+    });
+
+    return anim;
+  };
+
+  const setLogoVisibility = (showNormal) => {
+    logoLight.style.opacity = showNormal ? "0" : "1";
+    logoNormal.style.opacity = showNormal ? "1" : "0";
+  };
+
+  const setLogoReady = (isReady) => {
+    logo.classList.toggle("ready", isReady);
+  };
+
+  const initialLogoState = getLogoState(isScrolled);
+  setLogoVisibility(initialLogoState.showNormal);
+
+  const setInitialLogoSegment = () => {
+    const state = getLogoState(isScrolled);
+    if (state.showNormal) {
+      if (!normalLoaded) {
+        setLogoReady(false);
+        return;
+      }
+      setLogoVisibility(true);
+      normalAnimation.goToAndStop(state.segment, true);
     } else {
-      animation.goToAndStop(segmentStart - 1, true);
+      if (!lightLoaded) {
+        setLogoReady(false);
+        return;
+      }
+      setLogoVisibility(false);
+      lightAnimation.goToAndStop(state.segment, true);
     }
-  });
 
-  animation.addEventListener("complete", () => {
-    if (isAnimating) {
-      isAnimating = false;
+    setLogoReady(true);
+  };
+
+  const playSegments = (anim, from, to) => {
+    anim.goToAndStop(from, true);
+    anim.playSegments([from, to], true);
+  };
+
+  const switchToNormal = (playForward = true) => {
+    if (!normalLoaded) {
+      setLogoReady(false);
+      return;
     }
-  });
+
+    setLogoVisibility(true);
+    const [from, to] = playForward
+      ? [segmentStart, segmentEnd]
+      : [segmentEnd, segmentStart];
+    playSegments(normalAnimation, from, to);
+  };
+
+  const switchToLight = () => {
+    if (!lightLoaded) {
+      setLogoReady(false);
+      return;
+    }
+
+    setLogoVisibility(false);
+    playSegments(lightAnimation, segmentEnd, segmentStart);
+  };
+
+  const setScrolledState = (scrolled) => {
+    if (!scrollStateInitialized) {
+      isScrolled = scrolled;
+      header.classList.toggle("scrolled", scrolled);
+      setInitialLogoSegment();
+      scrollStateInitialized = true;
+      return;
+    }
+
+    if (scrolled === isScrolled) {
+      return;
+    }
+
+    header.classList.toggle("scrolled", scrolled);
+
+    if (isPageTemplate) {
+      if (scrolled) {
+        switchToNormal(true);
+      } else {
+        switchToLight();
+      }
+    } else {
+      switchToNormal(scrolled);
+    }
+
+    isScrolled = scrolled;
+  };
+
+  const updateHeader = () => {
+    const shouldBeScrolled = window.scrollY > threshold;
+    setScrolledState(shouldBeScrolled);
+  };
+
+  const initializeLightAnimation = () => {
+    lightAnimation = createAnimation(logoLight, lightAnimationPath, () => {
+      lightLoaded = true;
+      setInitialLogoSegment();
+    });
+  };
+
+  const initializeNormalAnimation = () => {
+    normalAnimation = createAnimation(logoNormal, normalAnimationPath, () => {
+      normalLoaded = true;
+      setInitialLogoSegment();
+    });
+  };
+
+  initializeLightAnimation();
+  initializeNormalAnimation();
 
   // Make logo clickable to navigate to home page
   logo.addEventListener("click", () => {
@@ -39,41 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add cursor pointer style to indicate it's clickable
   logo.style.cursor = "pointer";
 
-  const threshold = (20 * window.innerHeight) / 100;
-  let isScrolled = window.scrollY > threshold;
-  let isAnimating = false;
-  let ticking = false;
-
-  // Apply initial state based on scroll position
-  if (isScrolled) {
-    header.classList.add("scrolled");
-  }
-
-  const playSegment = (forward) => {
-    const segment = forward ? [segmentStart, segmentEnd] : [segmentEnd, segmentStart];
-    isAnimating = true;
-    animation.playSegments(segment, true);
-  };
-
-  const updateHeader = () => {
-    const currentY = window.scrollY;
-    const shouldBeScrolled = currentY > threshold;
-    const shouldToggle = isScrolled ? currentY < threshold : currentY > threshold;
-
-    if (shouldToggle && !isAnimating) {
-      if (!isScrolled && shouldBeScrolled) {
-        header.classList.add("scrolled");
-        playSegment(true);
-        isScrolled = true;
-      } else if (isScrolled && !shouldBeScrolled) {
-        header.classList.remove("scrolled");
-        playSegment(false);
-        isScrolled = false;
-      }
-    }
-  };
-
-  const requestTick = () => {
+  const scheduleUpdate = () => {
     if (!ticking) {
       requestAnimationFrame(() => {
         updateHeader();
@@ -83,8 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  window.addEventListener("scroll", requestTick);
-  
-  // Check initial scroll position on page load
-  updateHeader();
+  window.addEventListener("scroll", scheduleUpdate);
+  window.addEventListener("load", () => requestAnimationFrame(updateHeader));
+  window.addEventListener("pageshow", () => requestAnimationFrame(updateHeader));
+
+  requestAnimationFrame(updateHeader);
 });

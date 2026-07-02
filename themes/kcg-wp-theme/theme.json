@@ -36,7 +36,7 @@
 					"slug": "base"
 				},
 				{
-					"color": "#333333",
+					"color": "#0a3e6a",
 					"name": "Contrast",
 					"slug": "contrast"
 				},
@@ -249,12 +249,12 @@
 					"fontWeight": "500"
 				},
 				"color": {
-					"text": "var(--wp--preset--color--primary)"
+					"text": "var(--wp--preset--color--contrast)"
 				}
 			},
 			"core/navigation-submenu": {
 				"color": {
-					"text": "var(--wp--preset--color--primary)"
+					"text": "var(--wp--preset--color--contrast)"
 				}
 			},
 			"core/group": {
@@ -294,6 +294,11 @@
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--headings)",
 					"fontWeight": "600"
+				}
+			},
+			"link": {
+				"color": {
+					"text": "var(--wp--preset--color--accent-1)"
 				}
 			},
 			"h1": {
@@ -347,7 +352,7 @@
 		},
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--body)",
-			"fontSize": "18px"
+			"fontSize": "16px"
 		}
 	},
 	"customTemplates": [
