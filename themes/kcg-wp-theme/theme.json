@@ -16,11 +16,6 @@
 					"slug": "secondary"
 				},
 				{
-					"color": "light-dark(#1d70b7, #daefff)",
-					"name": "Accent",
-					"slug": "accent"
-				},
-				{
 					"color": "#a6bfd1",
 					"name": "Accent 1",
 					"slug": "accent-1"
@@ -36,39 +31,14 @@
 					"slug": "accent-3"
 				},
 				{
-					"color": "light-dark(#eeeeee, #0a3e6a)",
+					"color": "#eeeeee",
 					"name": "Base",
 					"slug": "base"
 				},
 				{
-					"color": "light-dark(#0a3e6a, #f0f4fb)",
+					"color": "#0a3e6a",
 					"name": "Contrast",
 					"slug": "contrast"
-				},
-				{
-					"color": "light-dark(#f0f4fb, #0a3e6a)",
-					"name": "Contrast Inverse",
-					"slug": "contrast-inverse"
-				},
-				{
-					"color": "#ffffff",
-					"name": "Inverse",
-					"slug": "inverse"
-				},
-				{
-					"color": "light-dark(#ffffff, #1d70b7)",
-					"name": "Surface",
-					"slug": "surface"
-				},
-				{
-					"color": "light-dark(#6e7583, #a3a7b0)",
-					"name": "Muted",
-					"slug": "muted"
-				},
-				{
-					"color":"light-dark(#eeeeee, #333333)",
-					"name": "Mono",
-					"slug": "mono"
 				},
 				{
 					"color": "#E6323B",
@@ -199,7 +169,6 @@
 		}
 	},
 	"styles": {
-		"css": ":root { color-scheme: light dark; }",
 		"spacing": {
 			"margin": {
 				"top": "0",
@@ -317,7 +286,7 @@
 			"button": {
 				"color": {
 					"background": "var(--wp--preset--color--secondary)",
-					"text": "var(--wp--preset--color--inverse)"
+					"text": "var(--wp--preset--color--base)"
 				},
 				"border": {
 					"radius": "0.5rem"
@@ -329,7 +298,7 @@
 			},
 			"link": {
 				"color": {
-					"text": "var(--wp--preset--color--link)"
+					"text": "var(--wp--preset--color--accent-1)"
 				}
 			},
 			"h1": {
@@ -383,7 +352,7 @@
 		},
 		"typography": {
 			"fontFamily": "var(--wp--preset--font-family--body)",
-			"fontSize": "16px"
+			"fontSize": "14px"
 		}
 	},
 	"customTemplates": [

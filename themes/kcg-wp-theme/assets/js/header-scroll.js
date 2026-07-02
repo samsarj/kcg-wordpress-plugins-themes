@@ -4,9 +4,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoLight = document.getElementById("lottie-logo-light");
   const logoNormal = document.getElementById("lottie-logo-normal");
 
-  const themePath = window.location.origin + "/wp-content/themes/kcg-wp-theme";
-  const lightAnimationPath = themePath + "/assets/anim/logo_kcg_unified_animation_light.json";
-  const normalAnimationPath = themePath + "/assets/anim/logo_kcg_unified_animation.json";
+  // const currentScript =
+  //   document.currentScript ||
+  //   document.querySelector('script[src*="header-scroll.js"]');
+  // const scriptUrl = currentScript
+  //   ? currentScript.src
+  //   : window.location.origin +
+  //     "/wp-content/themes/kcg-wp-theme/assets/js/header-scroll.js";
+  // const lightAnimationPath = new URL(
+  //   "../anim/logo_kcg_unified_animation_light.json",
+  //   scriptUrl,
+  // ).href;
+  // const normalAnimationPath = new URL(
+  //   "../anim/logo_kcg_unified_animation.json",
+  //   scriptUrl,
+  // ).href;
+
+  const lightAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation_light.json";
+  const normalAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation.json";
+
+  if (
+    !header ||
+    !logo ||
+    !logoLight ||
+    !logoNormal ||
+    typeof window.lottie === "undefined"
+  ) {
+    console.warn(
+      "Header scroll script aborted: missing DOM elements or lottie.",
+    );
+    return;
+  }
+
+  const setLogoReady = () => {
+    if (lightLoaded || normalLoaded) {
+      logo.classList.add("ready");
+    }
+  };
   const segmentStart = 186;
   const segmentEnd = 270;
   const threshold = (20 * window.innerHeight) / 100;
@@ -25,9 +59,16 @@ document.addEventListener("DOMContentLoaded", () => {
       loop: false,
       autoplay: false,
       path,
+      rendererSettings: {
+        preserveAspectRatio: "xMinYMid meet",
+      },
     });
-    anim.setSpeed(1);
-    anim.addEventListener("DOMLoaded", () => onLoad(anim));
+    anim.addEventListener("DOMLoaded", () => {
+      const segmentFrames = segmentEnd - segmentStart;
+      const fps = anim.animationData.fr;
+      anim.setSpeed(segmentFrames / fps);
+      onLoad(anim);
+    });
     anim.addEventListener("complete", () => {
       if (isAnimating) {
         isAnimating = false;
@@ -40,14 +81,20 @@ document.addEventListener("DOMContentLoaded", () => {
     lightAnimation = createAnimation(logoLight, lightAnimationPath, (anim) => {
       lightLoaded = true;
       anim.goToAndStop(segmentStart - 1, true);
+      setLogoReady();
     });
   };
 
   const initializeNormalAnimation = () => {
-    normalAnimation = createAnimation(logoNormal, normalAnimationPath, (anim) => {
-      normalLoaded = true;
-      anim.goToAndStop(isScrolled ? segmentEnd - 1 : segmentStart - 1, true);
-    });
+    normalAnimation = createAnimation(
+      logoNormal,
+      normalAnimationPath,
+      (anim) => {
+        normalLoaded = true;
+        anim.goToAndStop(segmentStart - 1, true);
+        setLogoReady();
+      },
+    );
   };
 
   const switchToNormal = () => {
@@ -75,18 +122,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const updateHeader = () => {
     const currentY = window.scrollY;
     const shouldBeScrolled = currentY > threshold;
-    const shouldToggle = isScrolled ? currentY < threshold : currentY > threshold;
 
-    if (shouldToggle && !isAnimating) {
-      if (!isScrolled && shouldBeScrolled) {
-        header.classList.add("scrolled");
-        switchToNormal();
-        isScrolled = true;
-      } else if (isScrolled && !shouldBeScrolled) {
-        header.classList.remove("scrolled");
-        switchToLight();
-        isScrolled = false;
-      }
+    if (shouldBeScrolled && !isScrolled) {
+      header.classList.add("scrolled");
+      switchToNormal();
+      isScrolled = true;
+    } else if (!shouldBeScrolled && isScrolled) {
+      header.classList.remove("scrolled");
+      switchToLight();
+      isScrolled = false;
     }
   };
 
@@ -121,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.addEventListener("scroll", requestTick);
-  
+
   // Check initial scroll position on page load
   updateHeader();
 });

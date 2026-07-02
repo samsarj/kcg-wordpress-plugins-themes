@@ -6,15 +6,14 @@ header {
 }
 
 .header-inner {
-  --header-nav-color: var(--wp--preset--color--contrast);
-  --header-nav-color-scrolled: var(--wp--preset--color--primary);
+  --header-nav-color: #ffffff;
+  --header-nav-color-scrolled: var(--wp--preset--color--secondary);
   --header-nav-hover: var(--wp--preset--color--secondary);
-  --header-nav-submenu-bg: var(--wp--preset--color--inverse);
+  --header-nav-open-button: #ffffff;
+  --header-nav-close-button: var(--wp--preset--color--secondary);
   position: relative;
   background: transparent;
   color: var(--header-nav-color);
-  /* transition: background 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, height 0.4s ease, padding 0.4s ease; */
-  transition: all 1s ease;
   box-sizing: border-box;
   padding: 1rem 2rem;
   height: 20vh;
@@ -29,13 +28,25 @@ header {
 .header-inner .wp-block-navigation-item button,
 .header-inner .wp-block-navigation__container,
 .header-inner .wp-block-navigation__container *,
-.header-inner .wp-block-navigation-submenu a,
-.header-inner .wp-block-navigation-submenu button {
+.header-inner .wp-block-navigation-item__content {
   color: var(--header-nav-color) !important;
 }
 
-.header-inner .wp-block-navigation-submenu {
-  background: transparent;
+.header-inner,
+.header-inner * {
+  transition: background 1s ease, color 1s ease, height 1s ease, padding 1s ease;
+}
+
+.wp-block-navigation__submenu-container .wp-block-navigation-item__content,
+.wp-block-navigation__submenu-container .wp-block-navigation-item__label,
+.header-inner .wp-block-navigation-item.has-child .wp-block-navigation__submenu-container .wp-block-navigation-item__content,
+.header-inner .wp-block-navigation-item.has-child .wp-block-navigation__submenu-container .wp-block-navigation-item__label {
+  color: var(--wp--preset--color--secondary) !important;
+}
+
+.header-inner.scrolled .wp-block-navigation__submenu-container .wp-block-navigation-item__content,
+.header-inner.scrolled .wp-block-navigation__submenu-container .wp-block-navigation-item__label {
+  color: var(--wp--preset--color--secondary) !important;
 }
 
 .header-inner nav,
@@ -46,24 +57,18 @@ header {
 }
 
 .header-inner.scrolled {
-  background: var(--wp--preset--color--inverse);
-  color: var(--kcg-header-nav-color-scrolled);
+  background: white;
+  color: var(--header-nav-color-scrolled);
   box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.15);
   height: 10vh;
   padding: 0.5rem 2rem;
 }
 
-.header-inner.scrolled .wp-block-navigation-item a,
+.header-inner.scrolled .wp-block-navigation-item__content,
 .header-inner.scrolled .wp-block-navigation-item button,
 .header-inner.scrolled .wp-block-navigation__container,
-.header-inner.scrolled .wp-block-navigation__container *,
-.header-inner.scrolled .wp-block-navigation-submenu a,
-.header-inner.scrolled .wp-block-navigation-submenu button {
+.header-inner.scrolled .wp-block-navigation__container * {
   color: var(--header-nav-color-scrolled) !important;
-}
-
-.header-inner.scrolled .wp-block-navigation-submenu {
-  background: var(--header-nav-submenu-bg);
 }
 
 .header-inner .wp-block-navigation-item a:hover,
@@ -73,14 +78,30 @@ header {
   color: var(--kcg-header-nav-hover) !important;
 }
 
+
+.wp-block-navigation__responsive-container-close {
+  color: var(--wp--preset--color--secondary) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.wp-block-navigation__responsive-container-close svg path {
+  fill: var(--wp--preset--color--secondary) !important;
+  stroke: var(--wp--preset--color--secondary) !important;
+}
+
+
+
+
 .site-logo {
   position: relative;
-  height: 100%;
   min-width: 8rem;
+  height: 100%;
   width: auto;
 }
 
-.lottie-logo {
+.lottie-logo,
+.site-logo .site-logo-fallback {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -89,14 +110,34 @@ header {
   pointer-events: none;
 }
 
+.lottie-logo {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  opacity: 0;
+}
+
 #lottie-logo-light {
-  opacity: 1;
   z-index: 2;
 }
 
 #lottie-logo-normal {
-  opacity: 0;
   z-index: 1;
+}
+
+.site-logo .site-logo-fallback {
+  object-fit: contain;
+  opacity: 1;
+  z-index: 1;
+}
+
+.site-logo.ready .site-logo-fallback {
+  opacity: 0;
+}
+
+.site-logo.ready #lottie-logo-light,
+.site-logo.ready #lottie-logo-normal {
+  opacity: 1;
 }
 
 .header-inner.scrolled #lottie-logo-light {
@@ -107,10 +148,10 @@ header {
   opacity: 1;
 }
 
-@media screen and (max-width: 936px) {
+@media screen and (max-width: 768px) {
   .header-inner {
     padding: 0.5rem 1rem;
-    height: 20vh;
+    height: 15vh;
     justify-content: flex-start;
     position: relative;
   }
@@ -121,10 +162,7 @@ header {
   }
 
   .site-logo {
-    position: relative;
     height: calc(100% - 1rem);
-    width: auto;
-    min-width: 8rem;
   }
 
   .header-inner.scrolled .site-logo {
