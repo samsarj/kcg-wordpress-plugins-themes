@@ -1,10 +1,11 @@
 name: Hostinger deploy
 
-# Trigger this workflow when code is pushed to main or the feature deploy branch.
+# Trigger this workflow when code is pushed to main, staging, or the feature deploy branch.
 on:
   push:
     branches:
       - main
+      - staging
       - feature/deploy-workflow
 
 jobs:
@@ -17,6 +18,7 @@ jobs:
       SSH_PORT: ${{ secrets.SSH_PORT }}
       SSH_USER: ${{ secrets.SSH_USER }}
       SSH_DEST_ROOT: ${{ secrets.SSH_DEST_ROOT }}
+      SSH_DEST_ROOT_STAGING: ${{ secrets.SSH_DEST_ROOT_STAGING }}
 
     steps:
       - name: Checkout repo
@@ -39,14 +41,20 @@ jobs:
           set -euo pipefail
 
           # On main, deploy for real. On feature/deploy-workflow, simulate with dry run.
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+          if [ "${GITHUB_REF}" = "refs/heads/main" ] || [ "${GITHUB_REF}" = "refs/heads/staging" ]; then
             RSYNC_DRYRUN=""
           else
             RSYNC_DRYRUN="--dry-run"
           fi
 
+          if [ "${GITHUB_REF}" = "refs/heads/staging" ]; then
+            REMOTE_ROOT="${SSH_DEST_ROOT_STAGING}"
+          else
+            REMOTE_ROOT="${SSH_DEST_ROOT}"
+          fi
+
           SSH_OPTS="-o StrictHostKeyChecking=no -p ${SSH_PORT}"
-          REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${SSH_DEST_ROOT}"
+          REMOTE_BASE="${SSH_USER}@${SSH_HOST}:${REMOTE_ROOT}"
 
           # Deploy every plugin and theme directory present in the repository.
           mapfile -t paths < <(find plugins themes -maxdepth 1 -mindepth 1 -type d | sort)
