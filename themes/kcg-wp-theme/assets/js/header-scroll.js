@@ -3,25 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const logo = document.querySelector(".site-logo");
   const logoLight = document.getElementById("lottie-logo-light");
   const logoNormal = document.getElementById("lottie-logo-normal");
+  const logoFallback = document.querySelector(".site-logo-fallback");
 
-  if (logo) {
-    // Keep fallback logo visible until the correct animation frame is ready.
-    logo.classList.remove("ready");
-  }
+  const currentScript = document.currentScript || document.querySelector('script[src*="/assets/js/header-scroll.js"]');
 
-  const lightAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation_light.json";
-  const normalAnimationPath = window.location.origin + "/wp-content/themes/kcg-wp-theme/assets/anim/logo_kcg_unified_animation.json";
-
-  if (
-    !header ||
-    !logo ||
-    !logoLight ||
-    !logoNormal ||
-    typeof window.lottie === "undefined"
-  ) {
-    console.warn("Header scroll script aborted: missing DOM elements or lottie.");
-    return;
-  }
+  const themeUrl = currentScript.src.replace(/\/assets\/js\/[^/]+$/, "");
+  const lightAnimationPath = `${themeUrl}/assets/anim/logo_kcg_unified_animation_light.json`;
+  const normalAnimationPath = `${themeUrl}/assets/anim/logo_kcg_unified_animation.json`;
 
   const segmentStart = 186;
   const segmentEnd = 270;
