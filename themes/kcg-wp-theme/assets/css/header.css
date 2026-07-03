@@ -12,15 +12,25 @@ header {
   --header-nav-open-button: var(--wp--preset--color--primary);
   --header-nav-close-button: var(--wp--preset--color--primary);
   position: relative;
+  display: flex;
+  justify-content: center;
   background: white;
   color: var(--header-nav-color);
   box-sizing: border-box;
-  padding: 1rem 2rem;
+  padding: var(--wp--preset--spacing--40) var(--wp--preset--spacing--60);
   height: 20vh;
+  width: 100%;
+  box-shadow: 0 0 var(--wp--preset--spacing--40) rgba(0, 0, 0, 0.2);
+}
+
+.header-inner__content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
 }
 
 body.page .header-inner {
@@ -57,7 +67,16 @@ body.page .header-inner.scrolled {
 
 .header-inner,
 .header-inner * {
-  transition: background 1s ease, color 1s ease, height 1s ease, padding 1s ease, box-shadow 1s ease;
+  transition: background 1s ease, color 1s ease, height 1s ease, padding 1s ease, box-shadow 1s ease, fill 1s ease, stroke 1s ease;
+}
+
+.header-inner .wp-block-navigation__container {
+  width: 100%;
+  gap: 3vw;
+}
+
+.header-inner .wp-block-navigation__container > :only-child {
+  margin-left: auto;
 }
 
 .wp-block-navigation__submenu-container .wp-block-navigation-item__content,
@@ -73,8 +92,8 @@ body.page .header-inner.scrolled {
 }
 
 .header-inner nav,
-.header-inner > .wp-block-navigation,
-.header-inner > .wp-block-navigation__responsive-container {
+.header-inner .wp-block-navigation,
+.header-inner .wp-block-navigation__responsive-container {
   display: flex;
   align-items: center;
 }

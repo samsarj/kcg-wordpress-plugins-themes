@@ -1,11 +1,15 @@
+:root {
+    --start-padding: max(var(--wp--preset--spacing--60), calc((100vw - var(--wp--style--global--wide-size)) / 2));
+}
+
 .swiper-container {
     overflow: hidden;
-    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black var(--start-padding), black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black var(--start-padding), black 80%, transparent 100%);
 }
 
 .swiper-wrapper {
-    padding: 1rem 0 1rem 5%;
+    padding: var(--wp--preset--spacing--40) 0 var(--wp--preset--spacing--40) var(--start-padding);
     align-items: stretch;
 }
 
@@ -24,13 +28,13 @@
     width: 100%;
     justify-content: space-between;
     display: flex;
-    gap: 0.5rem;
+    gap: calc(var(--wp--preset--spacing--40)/2);
 }
 
 .event-card img {
     width: 6rem;
     aspect-ratio: 1/1;
-    border-radius: 0.5rem;
+    border-radius: calc(var(--wp--preset--spacing--40)/2);
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -44,7 +48,7 @@
     flex-direction: row;
     align-items: start;
     justify-content: start;
-    gap: 0.5rem;
+    gap: calc(var(--wp--preset--spacing--40)/2);
     text-align: left;
 }
 
@@ -54,7 +58,7 @@
 
 .event-content {
     display: flex;
-    gap: 0.5rem;
+    gap: calc(var(--wp--preset--spacing--40)/2);
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
@@ -68,7 +72,6 @@
 }
 
 .event-description {
-    font-size: calc(var(--wp--preset--font-size--medium)*0.9);
     flex-grow: 1;
 }
 
@@ -76,10 +79,10 @@
     display: flex;
     width: 100%;
     margin-top: auto;
-    gap: 0.5rem;
+    gap: calc(var(--wp--preset--spacing--40)/2);
 }
 
 .elvanto-swiper .wp-block-button__link {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: calc(var(--wp--preset--spacing--40)/2) !important;
+    padding-right: calc(var(--wp--preset--spacing--40)/2) !important;
 }

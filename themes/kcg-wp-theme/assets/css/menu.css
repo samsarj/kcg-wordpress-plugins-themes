@@ -19,13 +19,37 @@
 }
 
 /* Disable WP default breakpoints for navigation */
-@media (min-width: 600px) {
-  .wp-block-navigation__responsive-container-open:not(.always-shown) {
-    display: flex;
+@media screen and (max-width: 767px) {
+  .wp-block-navigation {
+    --navigation-layout-direction: row;
+    --navigation-layout-wrap: nowrap;
+    --navigation-layout-justify: flex-start;
+    --navigation-layout-align: center;
   }
 
-  .wp-block-navigation__responsive-container:not(.hidden-by-default):not(.is-menu-open) {
-    display: none;
+  .wp-block-navigation .wp-block-navigation__container:not(.is-responsive),
+  .wp-block-navigation__container:not(.is-responsive) {
+    display: none !important;
+  }
+
+  .wp-block-navigation__responsive-container-open:not(.always-shown),
+  .wp-block-navigation__responsive-container-close {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .wp-block-navigation__responsive-container:not(.is-menu-open) {
+    display: none !important;
+  }
+
+  .wp-block-navigation__responsive-container.has-modal-open.is-menu-open {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
   }
 }
 
@@ -116,14 +140,14 @@
 
   .wp-block-navigation__responsive-container.has-modal-open.is-menu-open #modal-1-content > ul.wp-block-navigation__container.is-responsive.wp-block-navigation > li > .wp-block-navigation-item__content,
   .wp-block-navigation__responsive-container.has-modal-open.is-menu-open #modal-1-content > ul.wp-block-navigation__container.is-responsive.wp-block-navigation > li > .wp-block-navigation-item__content > .wp-block-navigation-item__label {
-    font-size: clamp(1.1rem, 4.5vw, 1.35rem);
-    line-height: 1.2;
+    font-size: var(--wp--preset--font-size--large);
+    line-height: 1.5;
   }
 
   .wp-block-navigation__responsive-container.has-modal-open.is-menu-open #modal-1-content .wp-block-navigation__submenu-container .wp-block-navigation-item__content,
   .wp-block-navigation__responsive-container.has-modal-open.is-menu-open #modal-1-content .wp-block-navigation__submenu-container .wp-block-navigation-item__label {
-    font-size: clamp(0.95rem, 3.8vw, 1.05rem);
-    line-height: 1.3;
+    font-size: var(--wp--preset--font-size--medium);
+    line-height: 1.5;
   }
 
   .wp-block-navigation__responsive-container.has-modal-open.is-menu-open #modal-1-content > ul.wp-block-navigation__container.is-responsive.wp-block-navigation > li > .wp-block-navigation-item__content,

@@ -73,11 +73,11 @@ a:where(:not(.wp-element-button)):hover {
 /* Specific styles for hero text links */
 
 .hero-text a {
-  text-decoration: none;
+  /* text-decoration: none; */
 }
 
 .hero-text a:hover {
-  text-decoration: underline;
+  /* text-decoration: underline; */
 }
 
 /* Fixes for column blocks and cover blocks on mobile devices */
@@ -104,9 +104,9 @@ a:where(:not(.wp-element-button)):hover {
   box-sizing: border-box;
   background-color: white;
   border: 1px solid var(--wp--preset--color--base);
-  border-radius: 1rem;
-  padding: 0.5rem;
-  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
+  border-radius: var(--wp--preset--spacing--40);
+  padding: calc(var(--wp--preset--spacing--40)/2);
+  box-shadow: 0 0 var(--wp--preset--spacing--40) rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   transition: all 0.3s;

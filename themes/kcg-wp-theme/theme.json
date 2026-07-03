@@ -246,15 +246,8 @@
 			"core/navigation": {
 				"typography": {
 					"fontFamily": "var(--wp--preset--font-family--headings)",
-					"fontWeight": "500"
-				},
-				"color": {
-					"text": "var(--wp--preset--color--contrast)"
-				}
-			},
-			"core/navigation-submenu": {
-				"color": {
-					"text": "var(--wp--preset--color--contrast)"
+					"fontWeight": "500",
+					"fontSize": "var(--wp--preset--font-size--medium)"
 				}
 			},
 			"core/group": {
@@ -306,12 +299,14 @@
 					"text": "var(--wp--preset--color--primary)"
 				},
 				"typography": {
-					"fontSize": "2.8rem"
+					"fontSize": "2.8rem",
+					"fontWeight": "700"
 				}
 			},
 			"h2": {
 				"typography": {
-					"fontSize": "2.2rem"
+					"fontSize": "2.2rem",
+					"fontWeight": "700"
 				}
 			},
 			"h3": {
@@ -319,17 +314,20 @@
 					"text": "var(--wp--preset--color--primary)"
 				},
 				"typography": {
-					"fontSize": "2rem"
+					"fontSize": "2rem",
+					"fontWeight": "700"
 				}
 			},
 			"h4": {
 				"typography": {
-					"fontSize": "1.6rem"
+					"fontSize": "1.6rem",
+					"fontWeight": "600"
 				}
 			},
 			"h5": {
 				"typography": {
-					"fontSize": "1.4rem"
+					"fontSize": "1.4rem",
+					"fontWeight": "600"
 				}
 			},
 			"h6": {
@@ -337,7 +335,8 @@
 					"text": "var(--wp--preset--color--primary)"
 				},
 				"typography": {
-					"fontSize": "1.2rem"
+					"fontSize": "1.2rem",
+					"fontWeight": "500"
 				}
 			},
 			"heading": {
@@ -345,8 +344,7 @@
 					"text": "var(--wp--preset--color--secondary)"
 				},
 				"typography": {
-					"fontFamily": "var(--wp--preset--font-family--headings)",
-					"fontWeight": "bold"
+					"fontFamily": "var(--wp--preset--font-family--headings)"
 				}
 			}
 		},
