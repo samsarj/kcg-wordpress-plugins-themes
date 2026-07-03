@@ -10,8 +10,8 @@
  * Template Types: page
  */
 ?>
-<!-- wp:cover {"dimRatio":80,"overlayColor":"base","isUserOverlayColor":true,"focalPoint":{"x":0.5,"y":0.5},"isDark":false,"sizeSlug":"full","metadata":{"categories":["hero"],"patternName":"kcg-wp-theme/hero","name":"Hero"},"className":"full-height","style":{"elements":{"link":{"color":{"text":"var:preset|color|primary"}},"heading":{"color":{"text":"var:preset|color|light"}}}},"textColor":"primary","fontSize":"medium","layout":{"type":"constrained","contentSize":"800px"}} -->
-<div class="wp-block-cover is-light full-height has-primary-color has-text-color has-link-color has-medium-font-size"><span aria-hidden="true" class="wp-block-cover__background has-base-background-color has-background-dim-80 has-background-dim"></span>
+<!-- wp:cover {"dimRatio":80,"overlayColor":"primary","isUserOverlayColor":true,"focalPoint":{"x":0.5,"y":0.5},"isDark":false,"sizeSlug":"full","metadata":{"categories":["hero"],"patternName":"kcg-wp-theme/hero","name":"Hero"},"className":"full-height","style":{"elements":{"link":{"color":{"text":"var:preset|color|base"}},"heading":{"color":{"text":"var:preset|color|base"}}}},"textColor":"base","fontSize":"medium","layout":{"type":"constrained","contentSize":"800px"}} -->
+<div class="wp-block-cover is-light full-height has-base-color has-text-color has-link-color has-medium-font-size"><span aria-hidden="true" class="wp-block-cover__background has-primary-background-color has-background-dim-80 has-background-dim"></span>
     <div class="wp-block-cover__inner-container">
         <!-- wp:group {"layout":{"type":"default"}} -->
         <div class="wp-block-group">
