@@ -33,7 +33,7 @@ header {
   height: 100%;
 }
 
-body.page .header-inner {
+body.page:not(.page-template-page-simple) .header-inner {
   background: transparent;
   color: #ffffff;
   --header-nav-color: #ffffff;
@@ -43,11 +43,11 @@ body.page .header-inner {
   /* box-shadow: none; */
 }
 
-body.page .header-inner:not(.scrolled) {
+body.page:not(.page-template-page-simple) .header-inner:not(.scrolled) {
   box-shadow: none;
 }
 
-body.page .header-inner.scrolled {
+body:not(.page-template-page-simple) .header-inner.scrolled {
   background: white;
   color: var(--wp--preset--color--primary);
   --header-nav-color: var(--wp--preset--color--primary);

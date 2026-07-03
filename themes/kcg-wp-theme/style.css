@@ -80,6 +80,39 @@ a:where(:not(.wp-element-button)):hover {
   /* text-decoration: underline; */
 }
 
+.hero-cover {
+  position: relative !important;
+  min-height: 100vh !important;
+}
+
+.hero-scroll-arrow-wrapper {
+  position: absolute !important;
+  left: 0;
+  right: 0;
+  bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  z-index: 2;
+}
+
+.hero-scroll-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: transparent;
+  border: none;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  position: relative;
+}
+
+.hero-scroll-arrow svg {
+  width: 4em;
+  height: 4em;
+  color: white;
+}
+
+
 /* Fixes for column blocks and cover blocks on mobile devices */
 
 @media screen and (max-width: 768px) {
