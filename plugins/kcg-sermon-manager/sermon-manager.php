@@ -37,12 +37,37 @@ function enqueue_sermon_styles() {
     $plugin_data = get_plugin_data(__FILE__);
     $plugin_version = $plugin_data['Version'];
     
-    // Enqueue component-specific stylesheets with versioning
-    wp_enqueue_style('sermon-manager-series-grid', plugin_dir_url(__FILE__) . 'includes/css/series-grid.css', array(), $plugin_version);
-    wp_enqueue_style('sermon-manager-sermon-single', plugin_dir_url(__FILE__) . 'includes/css/sermon-single.css', array(), $plugin_version);
-    wp_enqueue_style('sermon-manager-latest-sermon', plugin_dir_url(__FILE__) . 'includes/css/latest-sermon.css', array(), $plugin_version);
-    wp_enqueue_style('sermon-manager-sermon-details', plugin_dir_url(__FILE__) . 'includes/css/sermon-details.css', array(), $plugin_version);
-    wp_enqueue_style('sermon-manager-responsive', plugin_dir_url(__FILE__) . 'includes/css/responsive.css', array(), $plugin_version);
+    // Enqueue component-specific stylesheets with modified timestamps for cache busting
+    wp_enqueue_style(
+        'sermon-manager-series-grid',
+        plugin_dir_url(__FILE__) . 'includes/css/series-grid.css',
+        array(),
+        filemtime(plugin_dir_path(__FILE__) . 'includes/css/series-grid.css')
+    );
+    wp_enqueue_style(
+        'sermon-manager-sermon-single',
+        plugin_dir_url(__FILE__) . 'includes/css/sermon-single.css',
+        array(),
+        filemtime(plugin_dir_path(__FILE__) . 'includes/css/sermon-single.css')
+    );
+    wp_enqueue_style(
+        'sermon-manager-latest-sermon',
+        plugin_dir_url(__FILE__) . 'includes/css/latest-sermon.css',
+        array(),
+        filemtime(plugin_dir_path(__FILE__) . 'includes/css/latest-sermon.css')
+    );
+    wp_enqueue_style(
+        'sermon-manager-sermon-details',
+        plugin_dir_url(__FILE__) . 'includes/css/sermon-details.css',
+        array(),
+        filemtime(plugin_dir_path(__FILE__) . 'includes/css/sermon-details.css')
+    );
+    wp_enqueue_style(
+        'sermon-manager-responsive',
+        plugin_dir_url(__FILE__) . 'includes/css/responsive.css',
+        array(),
+        filemtime(plugin_dir_path(__FILE__) . 'includes/css/responsive.css')
+    );
 }
 
 add_action('wp_enqueue_scripts', 'enqueue_sermon_styles');

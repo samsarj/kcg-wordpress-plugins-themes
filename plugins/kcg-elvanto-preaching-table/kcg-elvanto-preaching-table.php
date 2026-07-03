@@ -136,14 +136,14 @@ class KCG_Elvanto_Preaching_Table {
             'kcg-elvanto-preaching-table',
             KCG_ELVANTO_PREACHING_TABLE_URL . 'includes/assets/preaching-table.css',
             array(),
-            KCG_ELVANTO_PREACHING_TABLE_VERSION
+            filemtime(KCG_ELVANTO_PREACHING_TABLE_PATH . 'includes/assets/preaching-table.css')
         );
         
         wp_enqueue_script(
             'kcg-elvanto-preaching-table',
             KCG_ELVANTO_PREACHING_TABLE_URL . 'includes/assets/preaching-table.js',
             array(),
-            KCG_ELVANTO_PREACHING_TABLE_VERSION,
+            filemtime(KCG_ELVANTO_PREACHING_TABLE_PATH . 'includes/assets/preaching-table.js'),
             true
         );
     }

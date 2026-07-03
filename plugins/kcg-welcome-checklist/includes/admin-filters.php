@@ -170,7 +170,7 @@ function kcg_checklist_enqueue_admin_scripts( $hook ) {
         'kcg-checklist-admin-order',
         KCG_CHECKLIST_PLUGIN_URL . 'assets/admin-order.js',
         array( 'jquery' ),
-        '1.0',
+        filemtime(KCG_CHECKLIST_PLUGIN_DIR . 'assets/admin-order.js'),
         true
     );
 

@@ -96,14 +96,14 @@ function kcg_checklist_enqueue_frontend_assets() {
         'kcg-checklist-frontend-styles',
         KCG_CHECKLIST_PLUGIN_URL . 'assets/frontend-styles.css',
         [],
-        '1.0.0'
+        filemtime(KCG_CHECKLIST_PLUGIN_DIR . 'assets/frontend-styles.css')
     );
     
     wp_enqueue_script(
         'kcg-checklist-frontend-script',
         KCG_CHECKLIST_PLUGIN_URL . 'assets/frontend-script.js',
         ['jquery'],
-        '1.0.0',
+        filemtime(KCG_CHECKLIST_PLUGIN_DIR . 'assets/frontend-script.js'),
         true
     );
     

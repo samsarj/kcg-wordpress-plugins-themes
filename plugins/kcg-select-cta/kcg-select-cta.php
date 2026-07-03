@@ -28,8 +28,19 @@ class KCG_Select_CTA {
     }
     
     public function enqueue_scripts() {
-        wp_enqueue_style('kcg-select-cta-style', plugin_dir_url(__FILE__) . 'assets/style.css', array(), '1.0.0');
-        wp_enqueue_script('kcg-select-cta-script', plugin_dir_url(__FILE__) . 'assets/script-simple.js', array('jquery'), '1.0.0', true);
+        wp_enqueue_style(
+            'kcg-select-cta-style',
+            plugin_dir_url(__FILE__) . 'assets/style.css',
+            array(),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/style.css')
+        );
+        wp_enqueue_script(
+            'kcg-select-cta-script',
+            plugin_dir_url(__FILE__) . 'assets/script-simple.js',
+            array('jquery'),
+            filemtime(plugin_dir_path(__FILE__) . 'assets/script-simple.js'),
+            true
+        );
     }
     
     public function render_shortcode($atts) {

@@ -39,7 +39,7 @@ class Elvanto_Swiper_Display
             'elvanto-swiper-css',
             ELVANTO_SWIPER_URL . 'includes/assets/elvanto-swiper.css',
             array(),
-            ELVANTO_SWIPER_VERSION
+            filemtime(ELVANTO_SWIPER_PATH . 'includes/assets/elvanto-swiper.css')
         );
 
         // Enqueue Swiper JS
@@ -56,7 +56,7 @@ class Elvanto_Swiper_Display
             'elvanto-swiper-js',
             ELVANTO_SWIPER_URL . 'includes/assets/elvanto-swiper.js',
             array('swiper-js'),
-            ELVANTO_SWIPER_VERSION,
+            filemtime(ELVANTO_SWIPER_PATH . 'includes/assets/elvanto-swiper.js'),
             true
         );
     }

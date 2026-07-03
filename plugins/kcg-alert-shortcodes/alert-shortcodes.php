@@ -13,7 +13,12 @@ Text Domain: kcg-alert-shortcodes
 
 function enqueue_alert_styles() {
     if (has_shortcode(get_post()->post_content, 'alert')) {
-        wp_enqueue_style('custom-alert-styles', plugin_dir_url(__FILE__) . 'css/alert-styles.css');
+        wp_enqueue_style(
+            'custom-alert-styles',
+            plugin_dir_url(__FILE__) . 'css/alert-styles.css',
+            array(),
+            filemtime(plugin_dir_path(__FILE__) . 'css/alert-styles.css')
+        );
     }
 }
 add_action('wp_enqueue_scripts', 'enqueue_alert_styles');

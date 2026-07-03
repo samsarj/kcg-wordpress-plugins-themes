@@ -18,7 +18,6 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('MINISTRY_MANAGER_VERSION', $plugin_data['Version']);
 define('MINISTRY_MANAGER_PATH', plugin_dir_path(__FILE__));
 define('MINISTRY_MANAGER_URL', plugin_dir_url(__FILE__));
 
@@ -27,8 +26,19 @@ require_once MINISTRY_MANAGER_PATH . 'includes/shortcode-team-leader.php';
 
 function enqueue_custom_scripts()
 {
-    wp_enqueue_script('custom-team-script', MINISTRY_MANAGER_URL . 'includes/js/team.js', array('jquery'), MINISTRY_MANAGER_VERSION, true);
-    wp_enqueue_style('custom-team-style', MINISTRY_MANAGER_URL . 'includes/css/team.css', array(), MINISTRY_MANAGER_VERSION);
+    wp_enqueue_script(
+        'custom-team-script',
+        MINISTRY_MANAGER_URL . 'includes/js/team.js',
+        array('jquery'),
+        filemtime(MINISTRY_MANAGER_PATH . 'includes/js/team.js'),
+        true
+    );
+    wp_enqueue_style(
+        'custom-team-style',
+        MINISTRY_MANAGER_URL . 'includes/css/team.css',
+        array(),
+        filemtime(MINISTRY_MANAGER_PATH . 'includes/css/team.css')
+    );
 }
 add_action('wp_enqueue_scripts', 'enqueue_custom_scripts');
 
