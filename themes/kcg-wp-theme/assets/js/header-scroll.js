@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const logo = document.querySelector(".site-logo");
   const logoLight = document.getElementById("lottie-logo-light");
   const logoNormal = document.getElementById("lottie-logo-normal");
-  const logoFallback = document.querySelector(".site-logo-fallback");
 
   const currentScript = document.currentScript || document.querySelector('script[src*="/assets/js/header-scroll.js"]');
 

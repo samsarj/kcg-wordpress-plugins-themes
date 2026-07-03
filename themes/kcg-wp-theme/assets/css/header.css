@@ -149,8 +149,7 @@ body:not(.page-template-page-simple) .header-inner.scrolled {
   z-index: 10000;
 }
 
-.lottie-logo,
-.site-logo .site-logo-fallback {
+.lottie-logo {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -172,16 +171,6 @@ body:not(.page-template-page-simple) .header-inner.scrolled {
 
 #lottie-logo-normal {
   z-index: 1;
-}
-
-.site-logo .site-logo-fallback {
-  object-fit: contain;
-  opacity: 1;
-  z-index: 1;
-}
-
-.site-logo.ready .site-logo-fallback {
-  opacity: 0;
 }
 
 .site-logo.ready #lottie-logo-light,
