@@ -194,7 +194,7 @@ class Elvanto_Swiper_Display
             ?>
             <div class="event-buttons wp-block-buttons">
                 <?php if ($has_more_info): ?>
-                    <div class="wp-block-button is-style-outline is-style-outline--1 has-custom-width <?php echo esc_attr($button_width_class); ?>">
+                    <div class="wp-block-button is-style-outline is-style-outline--2 has-custom-width <?php echo esc_attr($button_width_class); ?>">
                         <a href="<?php echo esc_url($event['link_info']); ?>" <?php if (!empty($event['color'])): ?> style="border-color: <?php echo esc_attr($event['color']); ?>; color: <?php echo esc_attr($event['color']); ?>; background: transparent;" <?php endif; ?> class="wp-block-button__link wp-element-button" target="_blank">
                             More Info
                         </a>

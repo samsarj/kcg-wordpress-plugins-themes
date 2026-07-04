@@ -17,7 +17,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: calc(var(--wp--preset--font-size--medium)*16);
+    width: clamp(
+        280px,
+        min(100vw, calc(var(--wp--preset--font-size--large) * 8)),
+        calc(var(--wp--preset--font-size--large) * 8)
+    );
     overflow: visible;
 }
 
@@ -85,4 +89,18 @@
 .elvanto-swiper .wp-block-button__link {
     padding-left: calc(var(--wp--preset--spacing--40)/2) !important;
     padding-right: calc(var(--wp--preset--spacing--40)/2) !important;
+}
+
+.elvanto-swiper .wp-block-button.is-style-outline .wp-block-button__link {
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+}
+
+.elvanto-swiper .wp-block-button.is-style-outline.is-style-outline--2 .wp-block-button__link {
+    border-width: 3px;
+}
+
+.elvanto-swiper .wp-block-button__link {
+    width: 100%;
 }

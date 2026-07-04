@@ -26,6 +26,9 @@
     margin-bottom: var(--wp--preset--spacing--40);
 }
 
+.kcg-card.series-info-full {
+    gap: 1rem;
+}
 
 a.series-info-full {
     text-decoration: none;
@@ -33,10 +36,8 @@ a.series-info-full {
 
 .series-info-full .series-details,
 .sermon-card-content {
-    padding-left: 1rem;
-    padding-right: 0.5rem;
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 0;
+    margin: 0;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -48,12 +49,18 @@ a.series-info-full {
 }
 
 .series-info-full .series-image,
-.series-image {
+.series-image,
+.series-image-placeholder {
     display: block;
     margin: 0;
     width: 9rem;
-    height: auto;
+    height: 9rem;
     border-radius: 0.5rem;
+}
+
+.series-image-placeholder {
+    background-color: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .series-info-full .sermon-audio p {

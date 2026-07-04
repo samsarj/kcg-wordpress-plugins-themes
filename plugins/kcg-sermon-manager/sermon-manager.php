@@ -373,17 +373,27 @@ function series_featured_image_shortcode($atts) {
 }
 add_shortcode('series_featured_image', 'series_featured_image_shortcode');
 
+// Helper to render series image or fallback placeholder
+function get_series_image_or_placeholder_html() {
+    $series_image_html = get_series_featured_image_html();
+    if (!empty($series_image_html)) {
+        return $series_image_html;
+    }
+
+    return '<div class="series-image-placeholder" aria-hidden="true"></div>';
+}
+
 // Filter to replace series image placeholder in template parts
 function replace_series_image_placeholder($content) {
     // Only process if the content contains our placeholder
     if (strpos($content, '{{series_image}}') !== false) {
-        // Get the series image HTML
-        $series_image_html = get_series_featured_image_html();
+        // Get the series image HTML or placeholder
+        $series_image_html = get_series_image_or_placeholder_html();
         
         // Debug: Log what we're doing
         error_log('Replacing {{series_image}} placeholder. Image HTML: ' . $series_image_html);
         
-        // Replace the placeholder with actual image
+        // Replace the placeholder with actual image or placeholder markup
         $content = str_replace('{{series_image}}', $series_image_html, $content);
     }
     

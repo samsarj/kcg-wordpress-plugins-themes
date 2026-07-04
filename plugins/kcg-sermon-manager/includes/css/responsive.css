@@ -19,3 +19,18 @@
         text-align: center;
     }
 }
+
+@media screen and (max-width: 400px) {
+    .sermon .kcg-card,
+    .kcg-card.series-info-full {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .sermon .kcg-card .sermon-card-content,
+    .kcg-card.series-info-full .series-details {
+        text-align: center;
+        align-items: center;
+
+    }
+}
