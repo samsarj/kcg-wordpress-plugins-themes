@@ -125,8 +125,8 @@ function display_team_members_by_role($role_type) {
                 echo '<img src="' . esc_url($member['photo']) . '" alt="' . esc_attr($member['title']) . '"/>';
             }
             echo '<div class="card-content">';
-            echo '<h3>' . esc_html($member['title']) . '</h3>';
-            echo '<h5>' . esc_html($member['roles']) . '</h5>'; // Display roles
+            echo '<h5>' . esc_html($member['title']) . '</h5>';
+            echo '<h6>' . esc_html($member['roles']) . '</h6>'; // Display roles
             if ($member['bio']) {
                 echo '<p class="bio">' . esc_html($member['bio']) . '</p>';
             }

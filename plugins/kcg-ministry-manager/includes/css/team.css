@@ -27,7 +27,7 @@
 .team-member-card .card-content {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;                  /* Consistent spacing between content items */
+    gap: 0.5rem;
 }
 
 /* Ensure button containers and links size from padding, not just text metrics */
