@@ -101,6 +101,24 @@
     border-width: 3px;
 }
 
-.elvanto-swiper .wp-block-button__link {
+.elvanto-swiper .wp-block-buttons {
+    align-items: stretch;
+}
+
+.elvanto-swiper .wp-block-button {
+    display: inline-flex;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.elvanto-swiper .wp-block-button__link,
+.elvanto-swiper .wp-element-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: normal;
+    height: auto;
+    box-sizing: border-box;
     width: 100%;
 }
