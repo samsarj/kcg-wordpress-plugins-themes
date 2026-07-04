@@ -110,6 +110,16 @@ a:where(:not(.wp-element-button)):hover {
   width: 4em;
   height: 4em;
   color: white;
+  animation: hero-arrow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hero-arrow-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
 }
 
 
