@@ -20,7 +20,7 @@ header {
   padding: var(--wp--preset--spacing--40) var(--wp--preset--spacing--60);
   height: 20vh;
   width: 100%;
-  box-shadow: 0 0 var(--wp--preset--spacing--40) rgba(0, 0, 0, 0.2);
+  box-shadow: var(--wp--preset--shadow--natural);
 }
 
 .header-inner__content {

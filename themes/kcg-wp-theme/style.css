@@ -149,7 +149,7 @@ a:where(:not(.wp-element-button)):hover {
   border: 1px solid var(--wp--preset--color--base);
   border-radius: var(--wp--preset--spacing--40);
   padding: calc(var(--wp--preset--spacing--40)/2);
-  box-shadow: 0 0 var(--wp--preset--spacing--40) rgba(0, 0, 0, 0.2);
+  box-shadow: var(--wp--preset--shadow--natural);
   display: flex;
   align-items: center;
   transition: all 0.3s;

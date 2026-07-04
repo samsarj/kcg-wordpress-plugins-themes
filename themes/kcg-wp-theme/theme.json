@@ -107,6 +107,16 @@
 				}
 			]
 		},
+		"shadow": {
+			"defaultPresets": false,
+			"presets": [
+				{
+					"name": "Natural",
+					"slug": "natural",
+					"shadow": "0 0 1rem rgba(0, 0, 0, 0.2)"
+				}
+			]
+		},
 		"layout": {
 			"contentSize": "800px",
 			"wideSize": "1200px"
@@ -261,6 +271,10 @@
 				}
 			},
 			"core/image": {
+				"shadow": "var(--wp--preset--shadow--natural)",
+				"border": {
+					"radius": "1rem"
+				},
 				"spacing": {
 					"margin": {
 						"top": "0",
