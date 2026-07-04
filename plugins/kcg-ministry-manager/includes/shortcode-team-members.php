@@ -133,11 +133,11 @@ function display_team_members_by_role($role_type) {
             if ($member['email']) {
                 // Generate a button for the email link
                 $email_button = sprintf(
-                    '<a href="mailto:%1$s" class="wp-block-button__link">%2$s</a>',
+                    '<a href="mailto:%1$s" class="wp-block-button__link wp-element-button">%2$s</a>',
                     esc_attr($member['email']),
                     esc_html__('Send Email', 'text-domain')
                 );
-                echo '<div class="wp-block-button">' . $email_button . '</div>';
+                echo '<div class="wp-block-button is-style-fill">' . $email_button . '</div>';
             }
             echo '</div>'; // Close card-content div
             echo '</div>'; // Close card div
