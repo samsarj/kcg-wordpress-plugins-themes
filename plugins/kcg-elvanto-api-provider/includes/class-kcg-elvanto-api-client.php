@@ -78,6 +78,17 @@ class KCG_Elvanto_API_Client {
     }
 
     /**
+     * Fetch people from Elvanto.
+     *
+     * @param array $params
+     * @param array|null $debug_info
+     * @return array|WP_Error
+     */
+    public static function fetch_people(array $params = array(), array &$debug_info = null) {
+        return self::fetch_post('people/getAll.json', $params, 'people', 'person', $debug_info);
+    }
+
+    /**
      * Fetch JSON data via a POST request.
      *
      * @param string $endpoint
