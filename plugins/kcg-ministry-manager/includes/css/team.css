@@ -20,7 +20,7 @@
     justify-content: start;        /* Align content to top */
     text-align: center;           /* Center text alignment */
     gap: 0.5rem;                  /* Space between card elements */
-    width: 100%
+    width: 100%;
 }
 
 /* Card content wrapper */
@@ -30,9 +30,16 @@
     gap: 0.5rem;
 }
 
-/* Ensure button containers and links size from padding, not just text metrics */
+/* Button wrapper defaults to natural width alignment */
 .team-member-card .card-content .wp-block-button {
     display: inline-flex;
+}
+
+/* Center buttons for team cards always */
+.team-members-list.team .team-member-card .card-content .wp-block-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 /* Reset margins and padding for content elements (except buttons) */
@@ -51,12 +58,11 @@
 }
 
 /* ==================================================
-   ELDERS & STAFF - SPECIAL LAYOUT
+   ELDERS - SPECIAL LAYOUT
    ================================================== */
 
-/* Special horizontal layout for elders and staff members */
-.team-members-list.elders .team-member-card,
-.team-members-list.staff .team-member-card {
+/* Special horizontal layout for elders */
+.team-members-list.elders .team-member-card {
     min-height: 240px;            /* Ensure consistent card height */
     max-height: 100%;
     flex-direction: row;          /* Horizontal layout (image + content side by side) */
@@ -64,18 +70,10 @@
     gap: 1rem;                    /* Space between image and content */
 }
 
-/* Image sizing for elders and staff - larger, more prominent */
-.team-members-list.elders .team-member-card img,
-.team-members-list.staff .team-member-card img {
+/* Image sizing for elders - larger, more prominent */
+.team-members-list.elders .team-member-card img {
     max-height: 240px;            /* Fixed height for consistency */
     max-width: 50%;               /* Limit width to leave space for content */
-}
-
-/* Staff-specific grid sizing */
-.team-members-list.staff .team-member-card {
-    flex-direction: row;          /* Maintain horizontal layout */
-    flex: 1 1 calc(50% - 1rem);   /* Two cards per row with gap consideration */
-    min-width: 160px;             /* Prevent cards from becoming too narrow */
 }
 
 /* ==================================================
@@ -94,27 +92,21 @@
     .team-members-list.elders .team-member-card .card-content,
     .team-members-list.staff .team-member-card .card-content {
         align-items: center;
-
     }
 
-    /* Staff cards mobile adjustments */
-    .team-members-list.staff .team-member-card {
-        flex-direction: column;   /* Vertical layout */
-        max-width: 320px;         /* Limit maximum width */
-        min-width: 140px;         /* Prevent cards from being too narrow */
-    }
-
-    /* Full-width images on mobile for staff */
-    .team-members-list.staff .team-member-card img {
-        max-width: 100%;          /* Allow full width on mobile */
+    .team-members-list.staff .team-member-card .card-content .wp-block-button {
+        display: flex;
+        justify-content: center;
+        width: 100%;
     }
 }
 
 /* ==================================================
-   GENERAL TEAM MEMBERS - GRID LAYOUT
+   GENERAL TEAM MEMBERS AND STAFF - GRID LAYOUT
    ================================================== */
 
 /* Regular team member cards - responsive grid layout with fixed widths */
+.team-members-list.staff .team-member-card,
 .team-members-list.team .team-member-card {
     flex: 0 0 auto;               /* Don't grow or shrink, use natural size */
     width: calc(50% - 1rem);      /* 2 cards per row on small screens */
@@ -122,6 +114,7 @@
 
 /* Medium screens: 3 cards per row */
 @media (min-width: 768px) {
+    .team-members-list.staff .team-member-card,
     .team-members-list.team .team-member-card {
         width: calc(33.333% - 1rem);
     }
@@ -129,6 +122,7 @@
 
 /* Large screens: 4 cards per row */
 @media (min-width: 1024px) {
+    .team-members-list.staff .team-member-card,
     .team-members-list.team .team-member-card {
         width: calc(25% - 1rem);
     }

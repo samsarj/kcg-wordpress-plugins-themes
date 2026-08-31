@@ -32,18 +32,30 @@ function display_ministry_leader($atts)
         return '';
     }
 
-    // Get ministry leaders
-    $leaders = get_field('group_ministry_leader', $ministry->ID);
+        // Query team members who have this ministry selected
+    $args = array(
+        'post_type' => 'team',
+        'posts_per_page' => 1,
+        'post_status' => 'publish',
+        'meta_query' => array(
+            array(
+                'key' => 'team_ministries',
+                'value' => '"' . $ministry->ID . '"',
+                'compare' => 'LIKE',
+            ),
+        ),
+    );
+    $team_query = new WP_Query($args);
 
-    // Return empty if no leaders
-    if (empty($leaders)) {
+    if (!$team_query->have_posts()) {
         return '';
     }
 
-    // Get the first leader (assuming one leader per ministry for this simple display)
-    $leader = is_array($leaders) ? $leaders[0] : $leaders;
+    $team_query->the_post();
+    $leader = get_post();
+    wp_reset_postdata();
 
-    if (!is_object($leader)) {
+    if (!$leader) {
         return '';
     }
 

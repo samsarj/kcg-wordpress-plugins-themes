@@ -15,12 +15,29 @@ $displayed_members = [];
 function get_team_member_priority($roles, $staff_role) {
     if (!empty($staff_role)) {
         return 1; // Highest priority
-    } elseif (is_array($roles) && in_array('elder', $roles)) {
+    } elseif (team_member_has_role($roles, 'elder')) {
         return 2;
-    } elseif (is_array($roles) && in_array('team_leader', $roles)) {
+    } elseif (team_member_has_role($roles, 'ministry_leader')) {
         return 3;
     } else {
         return 4; // Lowest priority
+    }
+}
+
+function team_member_has_role($roles, $role) {
+    return is_array($roles) && in_array($role, $roles, true);
+}
+
+function team_member_should_display($role_type, $roles, $staff_role, $ministries) {
+    switch ($role_type) {
+        case 'elder':
+            return team_member_has_role($roles, 'elder');
+        case 'staff':
+            return team_member_has_role($roles, 'staff') && !empty($staff_role);
+        case 'team_leader':
+            return team_member_has_role($roles, 'ministry_leader') && !empty($ministries);
+        default:
+            return false;
     }
 }
 
@@ -55,43 +72,24 @@ function display_team_members_by_role($role_type) {
                 continue;
             }
 
-            $team_roles = get_field('team_roles', $post_id);
+            $team_roles = get_field('team_roles', $post_id) ?: [];
             $staff_role = get_field('staff_role', $post_id);
             $ministries = mm_get_ministries_for_team_member($post_id);
 
-            // Determine if this member should be displayed in the current shortcode
-            $display_in_current_shortcode = false;
-
-            switch ($role_type) {
-                case 'elder':
-                    if (is_array($team_roles) && in_array('elder', $team_roles)) {
-                        $display_in_current_shortcode = true;
-                    }
-                    break;
-                case 'staff':
-                    if (!in_array('elder', $team_roles) && !empty($staff_role)) {
-                        $display_in_current_shortcode = true;
-                    }
-                    break;
-                case 'team_leader':
-                    if (!in_array('elder', $team_roles) && !in_array('staff', $team_roles) && !empty($ministries)) {
-                        $display_in_current_shortcode = true;
-                    }
-                    break;
+            if (!team_member_should_display($role_type, $team_roles, $staff_role, $ministries)) {
+                continue;
             }
 
-            if ($display_in_current_shortcode) {
-                // Add the member to the team members array
-                $team_members[] = [
-                    'post_id' => $post_id,
-                    'priority' => get_team_member_priority($team_roles, $staff_role),
-                    'title' => get_the_title($post_id),
-                    'photo' => get_field('team_photo', $post_id) ?: plugin_dir_url(__FILE__) . 'images/placeholder.jpg', // Path to your placeholder image
-                    'bio' => get_field('team_bio', $post_id),
-                    'email' => get_field('team_email', $post_id),
-                    'roles' => get_team_member_role_labels($team_roles, $staff_role, $ministries),
-                ];
-            }
+            // Add the member to the team members array
+            $team_members[] = [
+                'post_id' => $post_id,
+                'priority' => get_team_member_priority($team_roles, $staff_role),
+                'title' => get_the_title($post_id),
+                'photo' => get_field('team_photo', $post_id) ?: plugin_dir_url(__FILE__) . 'images/placeholder.jpg',
+                'bio' => team_member_has_role($team_roles, 'elder') ? get_field('team_bio', $post_id) : '',
+                'email' => get_field('team_email', $post_id),
+                'roles' => get_team_member_role_labels($team_roles, $staff_role, $ministries),
+            ];
         }
         wp_reset_postdata();
 
@@ -111,8 +109,10 @@ function display_team_members_by_role($role_type) {
             $list_class = 'team-members-list elders';
             break;
             case 'staff':
-            $list_class = 'team-members-list staff';
-            break;
+                $staff_count = count($team_members);
+                $staff_count_class = 'staff-count-' . min($staff_count, 4);
+                $list_class = 'team-members-list staff ' . $staff_count_class;
+                break;
             case 'team_leader':
             $list_class = 'team-members-list team';
             break;
@@ -126,7 +126,9 @@ function display_team_members_by_role($role_type) {
             }
             echo '<div class="card-content">';
             echo '<h5>' . esc_html($member['title']) . '</h5>';
-            echo '<h6>' . esc_html($member['roles']) . '</h6>'; // Display roles
+            if (!empty($member['roles'])) {
+                echo '<h6>' . esc_html($member['roles']) . '</h6>'; // Display roles
+            }
             if ($member['bio']) {
                 echo '<p class="bio">' . esc_html($member['bio']) . '</p>';
             }
@@ -160,24 +162,20 @@ function display_team_members_by_role($role_type) {
 function get_team_member_role_labels($roles, $staff_role, $ministries) {
     $roles_output = [];
 
-    // Staff role
-    if (!empty($staff_role)) {
+    if (team_member_has_role($roles, 'staff') && !empty($staff_role)) {
         $roles_output[] = esc_html($staff_role);
     }
 
-    // Elder role
-    if (is_array($roles) && in_array('elder', $roles)) {
+    if (team_member_has_role($roles, 'elder')) {
         $roles_output[] = 'Elder';
     }
 
-    // Ministry roles and suffixes
-    if (!empty($ministries)) {
+    if (team_member_has_role($roles, 'ministry_leader') && !empty($ministries)) {
         foreach ($ministries as $ministry) {
             if (is_a($ministry, 'WP_Post')) {
                 $ministry_name = esc_html(get_the_title($ministry->ID));
                 $suffix = get_field('leader_suffix', $ministry->ID);
 
-                // Directly use the suffix value
                 if (!empty($suffix)) {
                     $roles_output[] = $ministry_name . ' ' . esc_html($suffix);
                 } else {

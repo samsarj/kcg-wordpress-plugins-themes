@@ -148,6 +148,15 @@ if (function_exists('acf_add_local_field_group')) {
                 'label' => 'Bio',
                 'name' => 'team_bio',
                 'type' => 'textarea',
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_team_roles',
+                            'operator' => '==',
+                            'value' => 'elder',
+                        ),
+                    ),
+                ),
             ),
             array(
                 'key' => 'field_team_email',
@@ -166,12 +175,24 @@ if (function_exists('acf_add_local_field_group')) {
                 'mime_types' => 'jpg,jpeg,png',
             ),
             array(
-                'key' => 'field_linked_ministries',
-                'label' => 'Linked Ministries',
-                'name' => 'linked_ministries',
-                'type' => 'message',
-                'message' => '', // This will be populated dynamically
-                'instructions' => 'This shows the ministries that have selected this member as a leader. To modify, edit the ministry directly.',
+                'key' => 'field_team_ministries',
+                'label' => 'Ministries',
+                'name' => 'team_ministries',
+                'type' => 'relationship',
+                'post_type' => array('ministry'),
+                'return_format' => 'object',
+                'ui' => 1,
+                'filters' => array('search'),
+                'max' => 10,
+                'conditional_logic' => array(
+                    array(
+                        array(
+                            'field' => 'field_team_roles',
+                            'operator' => '==',
+                            'value' => 'ministry_leader',
+                        ),
+                    ),
+                ),
             ),
         ),
         'location' => array(
@@ -202,17 +223,6 @@ if (function_exists('acf_add_local_field_group')) {
                 'label' => 'Ministry Description',
                 'name' => 'ministry_description',
                 'type' => 'textarea',
-            ),
-            array(
-                'key' => 'field_group_ministry_leader',
-                'label' => 'Group Ministry Leaders',
-                'name' => 'group_ministry_leader',
-                'type' => 'relationship',
-                'post_type' => array('team'),
-                'return_format' => 'object',
-                'ui' => 1,
-                'filters' => array('search'),
-                'max' => 5, // Limit number of leaders if needed
             ),
             array(
                 'key' => 'field_ministry_category',
@@ -278,82 +288,14 @@ function mm_get_team_member_photo($post_id)
     return $photo;
 }
 
-function mm_sync_team_member_roles($post_id)
-{
-    // This function has been simplified to remove bi-directional syncing
-    // Only ministries can now select leaders - no syncing from team members to ministries
-
-    // Bail early if not a ministry post
-    if (get_post_type($post_id) != 'ministry') {
-        return;
-    }
-
-    // Ensure this is not a revision
-    if (wp_is_post_revision($post_id)) {
-        return;
-    }
-
-    // No additional syncing needed - ministries directly manage their leaders
-    // Team members can no longer select their ministries
-}
-add_action('acf/save_post', 'mm_sync_team_member_roles', 20);
-
-// Function to get ministries that have selected a team member as a leader
+// Function to get ministries that are selected for a team member
 function mm_get_ministries_for_team_member($team_member_id)
 {
-    $ministries = array();
+    $ministries = get_field('team_ministries', $team_member_id);
 
-    // Query all ministries
-    $ministry_args = array(
-        'post_type' => 'ministry',
-        'posts_per_page' => -1,
-        'post_status' => 'publish',
-    );
-
-    $ministry_query = new WP_Query($ministry_args);
-
-    if ($ministry_query->have_posts()) {
-        while ($ministry_query->have_posts()) {
-            $ministry_query->the_post();
-            $ministry_id = get_the_ID();
-            $leaders = get_field('group_ministry_leader', $ministry_id);
-
-            if ($leaders) {
-                foreach ($leaders as $leader) {
-                    if (is_object($leader) && $leader->ID == $team_member_id) {
-                        $ministries[] = get_post($ministry_id);
-                        break;
-                    }
-                }
-            }
-        }
-        wp_reset_postdata();
+    if (!$ministries) {
+        return array();
     }
 
-    return $ministries;
+    return is_array($ministries) ? $ministries : array($ministries);
 }
-
-// Hook to populate the linked ministries message field
-function mm_populate_linked_ministries_message($field)
-{
-    global $post;
-
-    if ($post && $post->post_type == 'team') {
-        $ministries = mm_get_ministries_for_team_member($post->ID);
-
-        if (!empty($ministries)) {
-            $ministry_names = array();
-            foreach ($ministries as $ministry) {
-                $ministry_names[] = '<strong>' . esc_html($ministry->post_title) . '</strong>';
-            }
-            $field['message'] = 
-                '<p>This member is currently selected as a leader for:</p>' .
-                '<ul><li>' . implode('</li><li>', $ministry_names) . '</li></ul>';
-        } else {
-            $field['message'] = '<p><em>This member is not currently selected as a leader for any ministries.</em></p>';
-        }
-    }
-
-    return $field;
-}
-add_filter('acf/prepare_field/name=linked_ministries', 'mm_populate_linked_ministries_message');
