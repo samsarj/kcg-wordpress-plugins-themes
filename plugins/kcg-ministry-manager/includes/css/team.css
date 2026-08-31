@@ -35,13 +35,6 @@
     display: inline-flex;
 }
 
-/* Center buttons for team cards always */
-.team-members-list.team .team-member-card .card-content .wp-block-button {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
 /* Reset margins and padding for content elements (except buttons) */
 .team-member-card .card-content>*:not(.wp-block-button) {
     margin: 0;
@@ -110,6 +103,13 @@
 .team-members-list.team .team-member-card {
     flex: 0 0 auto;               /* Don't grow or shrink, use natural size */
     width: calc(50% - 1rem);      /* 2 cards per row on small screens */
+}
+
+.team-members-list.staff .team-member-card .card-content .wp-block-button,
+.team-members-list.team .team-member-card .card-content .wp-block-button {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 /* Medium screens: 3 cards per row */
