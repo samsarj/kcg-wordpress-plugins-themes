@@ -2,61 +2,90 @@
 /**
  * Plugin Name:       Clickable Cover Card
  * Description:       A cover block that is fully clickable with hover overlay effects.
- * Version:           1.0.0
- * Requires at least: 6.7
- * Requires PHP:      7.4
+ * Version:           2.0.0
  * Author:            Sam Sarjudeen
- * Author URI:        https://github.com/samsarj
- * Plugin URI:        https://github.com/samsarj/clickable-cover-card
- * GitHub Plugin URI: https://github.com/samsarj/clickable-cover-card
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       clickable-cover-card
- *
- * @package CreateBlock
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
-/**
- * Registers the block using a `blocks-manifest.php` file, which improves the performance of block type registration.
- * Behind the scenes, it also registers all assets so they can be enqueued
- * through the block editor in the corresponding context.
- *
- * @see https://make.wordpress.org/core/2025/03/13/more-efficient-block-type-registration-in-6-8/
- * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
- */
-function create_block_clickable_cover_card_block_init() {
-	/**
-	 * Registers the block(s) metadata from the `blocks-manifest.php` and registers the block type(s)
-	 * based on the registered block metadata.
-	 * Added in WordPress 6.8 to simplify the block metadata registration process added in WordPress 6.7.
-	 *
-	 * @see https://make.wordpress.org/core/2025/03/13/more-efficient-block-type-registration-in-6-8/
-	 */
-	if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {
-		wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-		return;
+
+function clickable_cover_card_register_style() {
+	wp_register_style(
+		'kcg-clickable-cover-card-style',
+		plugins_url( 'style.css', __FILE__ ),
+		array(),
+		'1.0.0'
+	);
+}
+add_action( 'init', 'clickable_cover_card_register_style', 5 );
+
+function clickable_cover_card_enqueue_assets() {
+	wp_enqueue_style( 'kcg-clickable-cover-card-style' );
+}
+add_action( 'enqueue_block_assets', 'clickable_cover_card_enqueue_assets' );
+
+function clickable_cover_card_block_init() {
+	register_block_type( 'create-block/clickable-cover-card', array(
+		'title'           => __( 'Clickable Cover Card', 'clickable-cover-card' ),
+		'description'     => __( 'A cover block that is fully clickable with hover overlay effects.', 'clickable-cover-card' ),
+		'attributes'      => array(
+			'heading'    => array(
+				'type'    => 'string',
+				'default' => 'Heading',
+			),
+			'text'       => array(
+				'type'    => 'string',
+				'default' => 'Paragraph text',
+			),
+			'imageUrl'   => array(
+				'type'    => 'string',
+				'default' => '',
+			),
+			'linkUrl'    => array(
+				'type'    => 'string',
+				'default' => '',
+			),
+		),
+		'supports'        => array(
+			'autoRegister' => true,
+			'color'        => array(
+				'text'    => true,
+				'heading' => true,
+				'custom'  => true,
+			),
+		),
+		'style'           => 'kcg-clickable-cover-card-style',
+		'render_callback' => 'clickable_cover_card_render',
+	) );
+}
+add_action( 'init', 'clickable_cover_card_block_init', 10 );
+
+
+function clickable_cover_card_render( $attributes, $content, $block ) {
+	$heading = $attributes['heading'] ?? 'Heading';
+	$text    = $attributes['text'] ?? 'Paragraph text';
+
+	// Sanitise dynamic values.
+	$image_url = esc_url_raw( $attributes['imageUrl'] ?? '' );
+	$link_url  = esc_url( $attributes['linkUrl'] ?? '' );
+
+	// Build the inline style — only add background-image when a URL is present.
+	$style = 'background-size: cover; background-position: center;';
+	if ( $image_url ) {
+		$style = 'background-image: url(' . $image_url . '); ' . $style;
 	}
 
-	/**
-	 * Registers the block(s) metadata from the `blocks-manifest.php` file.
-	 * Added to WordPress 6.7 to improve the performance of block type registration.
-	 *
-	 * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
-	 */
-	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
-		wp_register_block_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-	}
-	/**
-	 * Registers the block type(s) in the `blocks-manifest.php` file.
-	 *
-	 * @see https://developer.wordpress.org/reference/functions/register_block_type/
-	 */
-	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
-	foreach ( array_keys( $manifest_data ) as $block_type ) {
-		register_block_type( __DIR__ . "/build/{$block_type}" );
-	}
+	$wrapper_attributes = get_block_wrapper_attributes( array(
+		'class' => 'clickable-cover-card',
+	) );
+
+	return '<div ' . $wrapper_attributes . ' style="' . esc_attr( $style ) . '">'
+		. '<div class="overlay"></div>'
+		. '<div class="cover-content">'
+		. '<h3>' . esc_html( $heading ) . '</h3>'
+		. '<p>' . esc_html( $text ) . '</p>'
+		. '</div>'
+		. '<a class="cover-link" href="' . $link_url . '" target="_self" rel="noopener noreferrer" aria-label="' . esc_attr( $heading ) . '"></a>'
+		. '</div>';
 }
-add_action( 'init', 'create_block_clickable_cover_card_block_init' );
