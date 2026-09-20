@@ -35,11 +35,8 @@ class Elvanto_Swiper {
     private $display;
     
     public function __construct() {
-        // Wait for the API provider to be loaded
+        // Wait for the API provider to be loaded.
         add_action('plugins_loaded', array($this, 'init_display'));
-
-        // Register the cron hook to fetch events
-        add_action('elvanto_swiper_fetch_events_hook', array($this, 'run_fetch_events_cron'));
     }
 
     /**
@@ -77,32 +74,6 @@ class Elvanto_Swiper {
     }
     
     /**
-     * Run the cron job to fetch events
-     */
-    public function run_fetch_events_cron() {
-        // Check if API provider is available
-        if (!class_exists('KCG_Elvanto_API_Registry')) {
-            error_log('Elvanto Swiper: KCG_Elvanto_API_Registry not available for cron execution');
-            return;
-        }
-        
-        // Load the API class and fetch events
-        require_once plugin_dir_path(__FILE__) . 'includes/class-elvanto-swiper-api.php';
-        $api = new Elvanto_Swiper_API();
-        $success = $api->fetch_events();
-        
-        // Update the last refresh timestamp and status
-        update_option('elvanto_swiper_last_refresh', current_time('mysql'));
-        update_option('elvanto_swiper_last_refresh_status', $success ? 'success' : 'failed');
-        
-        if ($success) {
-            error_log('Elvanto Swiper: Cron job executed - events refreshed');
-        } else {
-            error_log('Elvanto Swiper: Cron job executed - fetch failed, previous cache preserved');
-        }
-    }
-    
-    /**
      * Plugin activation
      */
     public static function activate() {
@@ -110,20 +81,13 @@ class Elvanto_Swiper {
             deactivate_plugins(plugin_basename(__FILE__));
             wp_die('KCG Elvanto Swiper requires the KCG Elvanto API Provider plugin to be installed and active.');
         }
-
-        if (!wp_next_scheduled('elvanto_swiper_fetch_events_hook')) {
-            wp_schedule_event(time(), 'hourly', 'elvanto_swiper_fetch_events_hook');
-        }
     }
     
     /**
      * Plugin deactivation
      */
     public static function deactivate() {
-        $timestamp = wp_next_scheduled('elvanto_swiper_fetch_events_hook');
-        if ($timestamp) {
-            wp_unschedule_event($timestamp, 'elvanto_swiper_fetch_events_hook');
-        }
+        // The provider owns all upstream refresh scheduling; the swiper plugin is display-only.
     }
 }
 

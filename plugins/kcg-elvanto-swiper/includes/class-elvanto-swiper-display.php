@@ -80,10 +80,6 @@ class Elvanto_Swiper_Display
         }
         
         $api = new Elvanto_Swiper_API();
-        if (!$api) {
-            return '<p>' . esc_html__('Events service not initialized', 'elvanto-swiper') . '</p>';
-        }
-        
         $events = $api->get_events();
 
         if (empty($events)) {
@@ -122,15 +118,52 @@ class Elvanto_Swiper_Display
         $formatted_date = '';
         $formatted_time = '';
 
-        // Format date and time from standardized fields with proper timezone handling
+        $display_timezone = function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone();
+
         if (!empty($event['date'])) {
-            // Just format the date
-            $formatted_date = wp_date('D jS M', strtotime($event['date']));
+            $date_value = trim((string) $event['date']);
+            $time_value = trim((string) ($event['time'] ?? ''));
+            $date_time_value = $time_value !== '' ? $date_value . ' ' . $time_value : $date_value;
+
+            $dt = null;
+            foreach (array('Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i', 'Y-m-d') as $format) {
+                $local_dt = DateTime::createFromFormat($format, $date_time_value, $display_timezone);
+                if ($local_dt instanceof DateTime) {
+                    $errors = DateTime::getLastErrors();
+                    if ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+                        continue;
+                    }
+                    $dt = $local_dt;
+                    break;
+                }
+            }
+
+            if ($dt instanceof DateTime) {
+                $formatted_date = $dt->format('D jS M');
+            }
         }
 
-        // Format time from stored local date/time values
         if (!empty($event['time']) && empty($event['all_day'])) {
-            $formatted_time = date_i18n('g:i A', strtotime(($event['date'] ?? '') . ' ' . $event['time']));
+            $date_value = trim((string) ($event['date'] ?? ''));
+            $time_value = trim((string) $event['time']);
+            $date_time_value = $date_value !== '' && $time_value !== '' ? $date_value . ' ' . $time_value : '';
+
+            $dt = null;
+            foreach (array('Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i', 'Y-m-d') as $format) {
+                $local_dt = DateTime::createFromFormat($format, $date_time_value, $display_timezone);
+                if ($local_dt instanceof DateTime) {
+                    $errors = DateTime::getLastErrors();
+                    if ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+                        continue;
+                    }
+                    $dt = $local_dt;
+                    break;
+                }
+            }
+
+            if ($dt instanceof DateTime) {
+                $formatted_time = $dt->format('g:i A');
+            }
         }
 
     ?>

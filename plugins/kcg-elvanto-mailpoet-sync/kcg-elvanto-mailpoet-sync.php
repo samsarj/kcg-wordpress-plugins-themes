@@ -32,4 +32,6 @@ require_once KCG_ELVANTO_MAILPOET_SYNC_PATH . 'includes/class-elvanto-mailpoet-s
 register_activation_hook(__FILE__, array('KCG\\ElvantoMailPoetSync\\Plugin', 'activate'));
 register_deactivation_hook(__FILE__, array('KCG\\ElvantoMailPoetSync\\Plugin', 'deactivate'));
 
-add_action('plugins_loaded', array('KCG\\ElvantoMailPoetSync\\Plugin', 'init'), 5);
+// Initialize after the provider has finished its own plugins_loaded bootstrap so the shared
+// registry/cache classes are guaranteed to be present.
+add_action('plugins_loaded', array('KCG\ElvantoMailPoetSync\Plugin', 'init'), 20);

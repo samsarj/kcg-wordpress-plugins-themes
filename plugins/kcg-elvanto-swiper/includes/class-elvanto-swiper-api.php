@@ -13,80 +13,16 @@ if (!defined('ABSPATH')) {
 class Elvanto_Swiper_API {
     
     /**
-     * Fetch events from both events and services endpoints
+     * Fetch events from the shared provider cache.
+     *
+     * This plugin does not own upstream API refreshes; it reads the data the provider has already cached.
      */
     public function fetch_events() {
-        error_log('Starting dual-endpoint fetch process');
-
-        if (!class_exists('KCG_Elvanto_API_Client')) {
-            error_log('KCG_Elvanto_API_Client not available');
-            return;
+        if (!class_exists('KCG_Elvanto_Cache')) {
+            return false;
         }
 
-        $start_date = date('Y-m-d');
-        $end_date = date('Y-m-d', strtotime('+1 month'));
-
-        $debug_info = array(
-            'timestamp' => current_time('mysql'),
-            'endpoints' => array(),
-        );
-
-        $has_api_error = false;
-
-        $events_data = KCG_Elvanto_API_Client::fetch_events(
-            $start_date,
-            $end_date,
-            array('register_url', 'locations'),
-            $debug_info
-        );
-
-        if (is_wp_error($events_data)) {
-            $debug_info['endpoints']['events']['error'] = $events_data->get_error_message();
-            $has_api_error = true;
-            $events_data = [];
-        }
-
-        $services_data = KCG_Elvanto_API_Client::fetch_services(
-            $start_date,
-            $end_date,
-            array('series_name', 'picture'),
-            $debug_info
-        );
-
-        if (is_wp_error($services_data)) {
-            $debug_info['endpoints']['services']['error'] = $services_data->get_error_message();
-            $has_api_error = true;
-            $services_data = [];
-        }
-
-        $merged_events = $this->merge_events_and_services($events_data, $services_data, $debug_info);
-
-        if (!$has_api_error) {
-            update_option('elvanto_swiper_events', $merged_events);
-            set_transient('elvanto_swiper_events', $merged_events, 6 * HOUR_IN_SECONDS);
-            update_option('elvanto_swiper_raw_events', $events_data);
-            update_option('elvanto_swiper_raw_services', $services_data);
-            set_transient('elvanto_swiper_raw_events', $events_data, 6 * HOUR_IN_SECONDS);
-            set_transient('elvanto_swiper_raw_services', $services_data, 6 * HOUR_IN_SECONDS);
-        } else {
-            error_log('Elvanto Swiper: API error detected, preserving existing cached data.');
-            $merged_events = get_option('elvanto_swiper_events', get_transient('elvanto_swiper_events') ?: []);
-        }
-
-        // Store the complete API responses for debugging
-        update_option('elvanto_swiper_full_events_response', $debug_info['endpoints']['events']['full_response'] ?? []);
-        update_option('elvanto_swiper_full_services_response', $debug_info['endpoints']['services']['full_response'] ?? []);
-        
-        // Store the debug info
-        $debug_response = [
-            'events_count' => count($merged_events),
-            'debug' => $debug_info
-        ];
-        update_option('elvanto_swiper_latest_response', json_encode($debug_response));
-        
-        error_log("Stored " . count($merged_events) . " merged events");
-
-        return !$has_api_error;
+        return !empty($this->get_events());
     }
     
     /**
@@ -173,11 +109,18 @@ class Elvanto_Swiper_API {
                     $standardized_event['location'] = $event['where'];
                 }
                 
-                // Map date and time from start_date
+                // Elvanto supplies the service time in UTC; convert once to the display timezone before storing local fields.
                 if (!empty($event['start_date'])) {
                     if (strpos($event['start_date'], ' ') !== false) {
-                        $standardized_event['date'] = get_date_from_gmt($event['start_date'], 'Y-m-d');
-                        $standardized_event['time'] = get_date_from_gmt($event['start_date'], 'H:i:s');
+                        $timezone = function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone();
+                        $source_dt = DateTime::createFromFormat('Y-m-d H:i:s', $event['start_date'], new DateTimeZone('UTC'));
+                        if ($source_dt instanceof DateTime) {
+                            $source_dt = $source_dt->setTimezone($timezone);
+                            $standardized_event['date'] = $source_dt->format('Y-m-d');
+                            $standardized_event['time'] = $source_dt->format('H:i:s');
+                        } else {
+                            $standardized_event['date'] = $event['start_date'];
+                        }
                     } else {
                         $standardized_event['date'] = $event['start_date'];
                     }
@@ -286,12 +229,19 @@ class Elvanto_Swiper_API {
             $event['subtitle'] = $service['series_name'];
         }
         
-        // Map date and time from service date field
+        // Convert the UTC wall time Elvanto gives to the church's display timezone once and only once.
         $service_date = $service['date'] ?? '';
         if (!empty($service_date)) {
             if (strpos($service_date, ' ') !== false) {
-                $event['date'] = get_date_from_gmt($service_date, 'Y-m-d');
-                $event['time'] = get_date_from_gmt($service_date, 'H:i:s');
+                $timezone = function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone();
+                $source_dt = DateTime::createFromFormat('Y-m-d H:i:s', $service_date, new DateTimeZone('UTC'));
+                if ($source_dt instanceof DateTime) {
+                    $source_dt = $source_dt->setTimezone($timezone);
+                    $event['date'] = $source_dt->format('Y-m-d');
+                    $event['time'] = $source_dt->format('H:i:s');
+                } else {
+                    $event['date'] = $service_date;
+                }
             } else {
                 // Date only
                 $event['date'] = $service_date;
@@ -338,19 +288,18 @@ class Elvanto_Swiper_API {
             $service_type = $service['series_name'];
         }
         
-        // If we found a service type, look for a matching link
+        // If we found a service type, look for a matching link using the raw Elvanto service type value.
         if ($service_type) {
-            $service_type_lower = strtolower(trim($service_type));
-            if (isset($service_links[$service_type_lower])) {
-                return $service_links[$service_type_lower];
+            if (isset($service_links[(string) $service_type])) {
+                return $service_links[(string) $service_type];
             }
         }
         
-        // If no specific match found, try some common fallbacks using title
+        // If no specific match found, try some common fallbacks using title.
         if (!empty($service['name'])) {
-            $title_lower = strtolower($service['name']);
+            $title = (string) $service['name'];
             foreach ($service_links as $configured_type => $url) {
-                if (strpos($title_lower, $configured_type) !== false) {
+                if (strpos($title, (string) $configured_type) !== false) {
                     return $url;
                 }
             }
@@ -360,9 +309,22 @@ class Elvanto_Swiper_API {
     }
     
     /**
-     * Get events for display
+     * Get events for display from the provider cache.
      */
     public function get_events() {
-        return get_transient('elvanto_swiper_events') ?: get_option('elvanto_swiper_events', []);
+        if (!class_exists('KCG_Elvanto_Cache')) {
+            return array();
+        }
+
+        $events_data = KCG_Elvanto_Cache::get_events();
+        $services_data = KCG_Elvanto_Cache::get_services();
+
+        if (empty($events_data) && empty($services_data)) {
+            return array();
+        }
+
+        $debug_info = array();
+        $merged = $this->merge_events_and_services($events_data, $services_data, $debug_info);
+        return $merged;
     }
 }

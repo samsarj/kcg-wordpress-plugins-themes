@@ -278,8 +278,6 @@ function kcg_checklist_get_members() {
     $members = kcg_checklist_get_cached_members();
     
     if ( empty( $members ) ) {
-        // Log debug info
-        error_log( 'KCG Checklist: No members found - filtering may be too strict' );
         wp_send_json_error( 'No members found' );
     }
     

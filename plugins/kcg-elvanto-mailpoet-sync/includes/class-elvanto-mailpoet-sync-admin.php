@@ -21,6 +21,10 @@ class Admin {
     }
 
     public function add_settings_page() {
+        if (!Plugin::is_provider_available()) {
+            return;
+        }
+
         add_submenu_page(
             'kcg-elvanto-api',
             'Elvanto MailPoet Sync',

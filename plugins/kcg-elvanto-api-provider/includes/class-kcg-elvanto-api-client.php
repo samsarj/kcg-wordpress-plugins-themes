@@ -18,7 +18,7 @@ class KCG_Elvanto_API_Client {
      * @param array|null $debug_info
      * @return string|WP_Error
      */
-    private static function get_api_key_or_error(array &$debug_info = null) {
+    private static function get_api_key_or_error(?array &$debug_info = null) {
         if (!class_exists('KCG_Elvanto_API_Registry')) {
             $error = new WP_Error('elvanto_api_provider_missing', 'Elvanto API provider is not available.');
             if (is_array($debug_info)) {
@@ -48,14 +48,17 @@ class KCG_Elvanto_API_Client {
      * @param array  $debug_info
      * @return array
      */
-    public static function fetch_services($start_date, $end_date, array $fields = array(), array &$debug_info = null) {
+    public static function fetch_services($start_date, $end_date, array $fields = array(), ?array &$debug_info = null) {
         $body = array(
             'start' => $start_date,
             'end' => $end_date,
-            'fields' => $fields,
         );
 
-        return self::fetch_post('services/getAll.json', $body, 'services', 'service', $debug_info);
+        if ( ! empty( $fields ) ) {
+            $body['fields'] = $fields;
+        }
+
+        return self::fetch_post('services/getAll.php', $body, 'services', 'service', $debug_info);
     }
 
     /**
@@ -67,14 +70,17 @@ class KCG_Elvanto_API_Client {
      * @param array  $debug_info
      * @return array
      */
-    public static function fetch_events($start_date, $end_date, array $fields = array(), array &$debug_info = null) {
+    public static function fetch_events($start_date, $end_date, array $fields = array(), ?array &$debug_info = null) {
         $params = array(
             'start' => $start_date,
             'end' => $end_date,
-            'fields' => $fields,
         );
 
-        return self::fetch_get('calendar/events/getAll.json', $params, 'events', 'event', $debug_info);
+        if ( ! empty( $fields ) ) {
+            $params['fields'] = $fields;
+        }
+
+        return self::fetch_get('calendar/events/getAll.php', $params, 'events', 'event', $debug_info);
     }
 
     /**
@@ -84,8 +90,8 @@ class KCG_Elvanto_API_Client {
      * @param array|null $debug_info
      * @return array|WP_Error
      */
-    public static function fetch_people(array $params = array(), array &$debug_info = null) {
-        return self::fetch_post('people/getAll.json', $params, 'people', 'person', $debug_info);
+    public static function fetch_people(array $params = array(), ?array &$debug_info = null) {
+        return self::fetch_post('people/getAll.php', $params, 'people', 'person', $debug_info);
     }
 
     /**
@@ -98,13 +104,15 @@ class KCG_Elvanto_API_Client {
      * @param array  $debug_info
      * @return array
      */
-    private static function fetch_post($endpoint, array $body, $wrapper_key, $item_key, array &$debug_info = null) {
+    private static function fetch_post($endpoint, array $body, $wrapper_key, $item_key, ?array &$debug_info = null) {
         $api_key = self::get_api_key_or_error($debug_info);
         if (is_wp_error($api_key)) {
             return $api_key;
         }
 
         $url = self::BASE_URL . $endpoint;
+        $body['output'] = 'php';
+
         $args = array(
             'headers' => array(
                 'Content-Type' => 'application/json',
@@ -127,13 +135,14 @@ class KCG_Elvanto_API_Client {
      * @param array  $debug_info
      * @return array
      */
-    private static function fetch_get($endpoint, array $params, $wrapper_key, $item_key, array &$debug_info = null) {
+    private static function fetch_get($endpoint, array $params, $wrapper_key, $item_key, ?array &$debug_info = null) {
         $api_key = self::get_api_key_or_error($debug_info);
         if (is_wp_error($api_key)) {
             return $api_key;
         }
 
         $params['apikey'] = $api_key;
+        $params['output'] = 'php';
         $url = add_query_arg($params, self::BASE_URL . $endpoint);
         $args = array('timeout' => 30);
 
@@ -151,7 +160,7 @@ class KCG_Elvanto_API_Client {
      * @param string $method
      * @return array
      */
-    private static function fetch_json($url, array $args, $wrapper_key, $item_key, array &$debug_info = null, $method = 'GET') {
+    private static function fetch_json($url, array $args, $wrapper_key, $item_key, ?array &$debug_info = null, $method = 'GET') {
         if (is_array($debug_info)) {
             $debug_info['request'] = array(
                 'method' => $method,
@@ -164,7 +173,7 @@ class KCG_Elvanto_API_Client {
 
         if (is_wp_error($response)) {
             $error_message = $response->get_error_message();
-            error_log('Elvanto API request failed: ' . $error_message);
+            error_log(sprintf('[KCG Elvanto API] %s %s -> request failed: %s', strtoupper($method), $wrapper_key, $error_message));
             if (is_array($debug_info)) {
                 $debug_info['response'] = array('error' => $error_message);
             }
@@ -173,15 +182,15 @@ class KCG_Elvanto_API_Client {
 
         $response_code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
+        $data = self::decode_response_body($body);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $error_message = 'Unable to parse Elvanto response: ' . json_last_error_msg();
-            error_log($error_message);
+        if (null === $data) {
+            $error_message = 'Unable to parse Elvanto response: unsupported response format.';
+            error_log(sprintf('[KCG Elvanto API] %s %s -> invalid response payload: %s', strtoupper($method), $wrapper_key, $error_message));
             if (is_array($debug_info)) {
                 $debug_info['response'] = array('error' => $error_message, 'body' => $body);
             }
-            return new WP_Error('elvanto_invalid_json', $error_message);
+            return new WP_Error('elvanto_invalid_response', $error_message);
         }
 
         if (is_array($debug_info)) {
@@ -196,11 +205,72 @@ class KCG_Elvanto_API_Client {
             if (is_array($debug_info)) {
                 $debug_info['api_error'] = $data['error'];
             }
-            error_log('Elvanto API returned an error: ' . $error_message);
+            error_log(sprintf('[KCG Elvanto API] %s %s -> API returned an error: %s', strtoupper($method), $wrapper_key, $error_message));
             return new WP_Error('elvanto_api_error', $error_message);
         }
 
-        return self::normalize_pagination_response($data, $wrapper_key, $item_key, $debug_info);
+        $normalized = self::normalize_pagination_response($data, $wrapper_key, $item_key, $debug_info);
+
+        return $normalized;
+    }
+
+    /**
+     * Convert nested objects from Elvanto PHP responses into arrays recursively.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private static function convert_to_array($value) {
+        if (is_array($value)) {
+            foreach ($value as $key => $item) {
+                $value[$key] = self::convert_to_array($item);
+            }
+            return $value;
+        }
+
+        if (is_object($value)) {
+            $converted = array();
+            foreach ((array) $value as $key => $item) {
+                $converted[$key] = self::convert_to_array($item);
+            }
+            return $converted;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Decode Elvanto responses as PHP-serialized data, with JSON fallback for safety.
+     *
+     * @param string $body
+     * @return array|null
+     */
+    private static function decode_response_body($body) {
+        if (!is_string($body)) {
+            return null;
+        }
+
+        $trimmed = trim($body);
+        if ('' === $trimmed) {
+            return null;
+        }
+
+        $php_decoded = @unserialize($trimmed);
+        if (is_array($php_decoded) || is_object($php_decoded)) {
+            return self::convert_to_array($php_decoded);
+        }
+
+        $json_decoded = json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($json_decoded)) {
+            return $json_decoded;
+        }
+
+        $maybe_serialized = maybe_unserialize($trimmed);
+        if (is_array($maybe_serialized) || is_object($maybe_serialized)) {
+            return self::convert_to_array($maybe_serialized);
+        }
+
+        return null;
     }
 
     /**
@@ -212,13 +282,15 @@ class KCG_Elvanto_API_Client {
      * @param array  $debug_info
      * @return array
      */
-    private static function normalize_pagination_response(array $response, $wrapper_key, $item_key, array &$debug_info = null) {
+    private static function normalize_pagination_response(array $response, $wrapper_key, $item_key, ?array &$debug_info = null) {
+        $response = self::convert_to_array($response);
         $result = array();
+        $wrapper = isset($response[$wrapper_key]) ? $response[$wrapper_key] : array();
 
-        if (isset($response[$wrapper_key][$item_key]) && is_array($response[$wrapper_key][$item_key])) {
-            $result = $response[$wrapper_key][$item_key];
-        } elseif (isset($response[$wrapper_key]) && is_array($response[$wrapper_key]) && !isset($response[$wrapper_key][$item_key])) {
-            $result = $response[$wrapper_key];
+        if (isset($wrapper[$item_key]) && is_array($wrapper[$item_key])) {
+            $result = $wrapper[$item_key];
+        } elseif (is_array($wrapper) && !isset($wrapper[$item_key])) {
+            $result = $wrapper;
         }
 
         if (is_array($debug_info)) {
@@ -226,7 +298,7 @@ class KCG_Elvanto_API_Client {
                 'wrapper_key' => $wrapper_key,
                 'item_key' => $item_key,
                 'items_count' => count($result),
-                'wrapper_keys' => isset($response[$wrapper_key]) && is_array($response[$wrapper_key]) ? array_keys($response[$wrapper_key]) : array(),
+                'wrapper_keys' => is_array($wrapper) ? array_keys($wrapper) : array(),
             );
         }
 

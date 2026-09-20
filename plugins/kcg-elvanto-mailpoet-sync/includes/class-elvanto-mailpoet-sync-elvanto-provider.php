@@ -14,7 +14,11 @@ if (!defined('ABSPATH')) {
 class ElvantoProvider {
 
     public static function is_available() {
-        return class_exists('KCG_Elvanto_API_Registry') && \KCG_Elvanto_API_Registry::has_api_key();
+        if (!class_exists('KCG_Elvanto_API_Registry') || !method_exists('KCG_Elvanto_API_Registry', 'has_api_key')) {
+            return false;
+        }
+
+        return (bool) \KCG_Elvanto_API_Registry::has_api_key();
     }
 
     public static function fetch_active_people() {
@@ -22,11 +26,19 @@ class ElvantoProvider {
             return new \WP_Error('elvanto_unavailable', 'Elvanto API Provider is not available or not configured.');
         }
 
-        $params = array();
+        if (!class_exists('KCG_Elvanto_Cache') || !method_exists('KCG_Elvanto_Cache', 'get_people')) {
+            return new \WP_Error('elvanto_cache_unavailable', 'Elvanto cache provider is not available.');
+        }
 
-        $people = \KCG_Elvanto_API_Client::fetch_people($params);
+        // All upstream Elvanto calls live in the provider layer. This plugin only reads the
+        // provider's raw cached people payload and applies mailpoet-specific filtering.
+        $people = \KCG_Elvanto_Cache::get_people();
         if (is_wp_error($people)) {
             return $people;
+        }
+
+        if (!is_array($people)) {
+            return array();
         }
 
         return array_values(array_filter($people, function ($person) {

@@ -390,9 +390,6 @@ function replace_series_image_placeholder($content) {
         // Get the series image HTML or placeholder
         $series_image_html = get_series_image_or_placeholder_html();
         
-        // Debug: Log what we're doing
-        error_log('Replacing {{series_image}} placeholder. Image HTML: ' . $series_image_html);
-        
         // Replace the placeholder with actual image or placeholder markup
         $content = str_replace('{{series_image}}', $series_image_html, $content);
     }
@@ -406,14 +403,12 @@ function replace_series_image_in_blocks($block_content, $block) {
     // Check if this is a template part block with our series-image slug
     if (isset($block['blockName']) && $block['blockName'] === 'core/template-part') {
         if (isset($block['attrs']['slug']) && $block['attrs']['slug'] === 'series-image') {
-            error_log('Processing series-image template part block');
             return replace_series_image_placeholder($block_content);
         }
     }
     
     // Also check for any content that contains our placeholder
     if (strpos($block_content, '{{series_image}}') !== false) {
-        error_log('Found {{series_image}} placeholder in block content');
         return replace_series_image_placeholder($block_content);
     }
     

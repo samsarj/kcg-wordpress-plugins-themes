@@ -40,21 +40,26 @@ class KCG_Elvanto_API_Registry {
 
 // Load shared API client
 require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-api-client.php');
+require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-cache.php');
 
 // Load admin functionality
 require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-api-admin.php');
 
 // Register activation and deactivation hooks
 register_activation_hook(__FILE__, function() {
-    // No scheduled tasks required for the provider plugin yet
+    KCG_Elvanto_Cache::activate();
 });
 
 register_deactivation_hook(__FILE__, function() {
-    // No cleanup actions required for the provider plugin yet
+    KCG_Elvanto_Cache::deactivate();
 });
 
-// Initialize admin interface on plugins_loaded
+// Ensure the shared cache scheduler is active across the site.
 add_action('plugins_loaded', function() {
+    if ( class_exists('KCG_Elvanto_Cache') ) {
+        KCG_Elvanto_Cache::init();
+    }
+
     if (is_admin()) {
         new KCG_Elvanto_API_Admin();
     }

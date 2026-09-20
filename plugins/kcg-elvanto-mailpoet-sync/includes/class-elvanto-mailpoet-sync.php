@@ -48,6 +48,10 @@ class Plugin {
     }
 
     public static function is_provider_available() {
-        return class_exists('KCG_Elvanto_API_Registry') && \KCG_Elvanto_API_Registry::has_api_key();
+        if (!class_exists('KCG_Elvanto_API_Registry') || !method_exists('KCG_Elvanto_API_Registry', 'has_api_key')) {
+            return false;
+        }
+
+        return (bool) \KCG_Elvanto_API_Registry::has_api_key();
     }
 }

@@ -96,7 +96,7 @@ function elvanto_swiper_parse_service_links() {
                 $url = trim($parts[1]);
                 
                 if (!empty($service_type) && !empty($url) && filter_var($url, FILTER_VALIDATE_URL)) {
-                    $service_links[strtolower($service_type)] = $url;
+                    $service_links[$service_type] = $url;
                 }
             }
         }
@@ -138,18 +138,17 @@ function elvanto_swiper_get_more_info_url($event) {
             $service_type = $event['subtitle'];
         }
         
-        // If we found a service type, look for a matching link
+        // If we found a service type, look for a matching link using the raw Elvanto service type value.
         if ($service_type) {
-            $service_type_lower = strtolower(trim($service_type));
-            if (isset($service_links[$service_type_lower])) {
-                return esc_url($service_links[$service_type_lower]);
+            if (isset($service_links[(string) $service_type])) {
+                return esc_url($service_links[(string) $service_type]);
             }
         }
         
-        // If no specific match found, try some common fallbacks using title
-        $title_lower = strtolower($event['title'] ?? $event['name'] ?? '');
+        // If no specific match found, try some common fallbacks using title.
+        $title = (string) ($event['title'] ?? $event['name'] ?? '');
         foreach ($service_links as $configured_type => $url) {
-            if (strpos($title_lower, $configured_type) !== false) {
+            if (strpos($title, (string) $configured_type) !== false) {
                 return esc_url($url);
             }
         }
