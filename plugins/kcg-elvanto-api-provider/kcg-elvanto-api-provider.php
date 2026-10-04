@@ -5,9 +5,6 @@
  * Version: 2.0.0
  * Author: Sam Sarjudeen
  * Author URI: https://github.com/samsarj
- * Plugin URI: https://github.com/samsarj/kcg-elvanto-api-provider
- * GitHub Plugin URI: https://github.com/samsarj/kcg-elvanto-api-provider
- * Primary Branch: main
  * Text Domain: kcg-elvanto-api-provider
  */
 
