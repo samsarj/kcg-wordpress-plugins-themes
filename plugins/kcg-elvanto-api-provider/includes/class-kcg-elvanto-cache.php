@@ -18,11 +18,11 @@ class KCG_Elvanto_Cache {
 
     const SERVICES_TTL = 30 * MINUTE_IN_SECONDS;
     const EVENTS_TTL = 30 * MINUTE_IN_SECONDS;
-    const PEOPLE_TTL = 2 * HOUR_IN_SECONDS;
+    const PEOPLE_TTL = 6 * HOUR_IN_SECONDS;
     const CALENDARS_TTL = 6 * HOUR_IN_SECONDS;
     const MERGED_EVENTS_TTL = 30 * MINUTE_IN_SECONDS;
     const SERVICES_RANGE_DAYS = 365;
-    const EVENTS_RANGE_DAYS = 30;
+    const EVENTS_RANGE_DAYS = 365;
 
     /** Per-request copy of transient payloads, cleared whenever a dataset is refreshed. */
     private static $request_cache = array();

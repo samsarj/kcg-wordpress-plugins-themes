@@ -325,7 +325,7 @@ class KCG_Elvanto_API_Admin {
                             <tbody>
                                 <?php foreach ($merged_events as $item):
                                     $dt = KCG_Elvanto_Datetime::from_local($item['date'] ?? '', $item['time'] ?? '');
-                                    $day = $dt ? wp_date('D ' . $date_format, $dt->getTimestamp(), $dt->getTimezone()) : (string) ($item['date'] ?? '');
+                                    $day = $dt ? wp_date($date_format, $dt->getTimestamp(), $dt->getTimezone()) : (string) ($item['date'] ?? '');
                                     $time = $dt && !empty($item['time']) ? wp_date($time_format, $dt->getTimestamp(), $dt->getTimezone()) : (empty($item['date']) ? '' : 'All day');
                                     $group = $item['source'] === 'service' ? $item['service_type'] : $item['calendar_name'];
                                     $search = strtolower(implode(' ', array($item['title'], $item['subtitle'], $item['service_type'], $item['calendar_name'], $item['location'], $day)));
