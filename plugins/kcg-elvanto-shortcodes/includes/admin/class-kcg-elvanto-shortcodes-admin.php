@@ -33,10 +33,13 @@ class KCG_Elvanto_Shortcodes_Admin {
         register_setting(self::SETTINGS_GROUP, KCG_Elvanto_Event_Merger::SERVICE_LINKS_OPTION, array(
             'sanitize_callback' => array($this, 'sanitize_service_links'),
         ));
+        register_setting(self::SETTINGS_GROUP, KCG_Elvanto_Event_Merger::REGISTER_LINKS_OPTION, array(
+            'sanitize_callback' => array($this, 'sanitize_service_links'),
+        ));
     }
 
     /**
-     * Sanitize submitted service links into a type => url array.
+     * Sanitize a submitted name => url array (service types or event titles).
      */
     public function sanitize_service_links($input) {
         $clean = array();
@@ -93,10 +96,37 @@ class KCG_Elvanto_Shortcodes_Admin {
         echo '</tbody></table>';
     }
 
+    private function render_register_links($event_titles) {
+        $saved = (array) get_option(KCG_Elvanto_Event_Merger::REGISTER_LINKS_OPTION, array());
+        $orphans = array_diff(array_keys($saved), $event_titles);
+
+        if (empty($event_titles) && empty($orphans)) {
+            echo '<p class="description">No calendar events loaded.</p>';
+            return;
+        }
+
+        echo '<p>Elvanto does not provide registration links, so set one per event title here. It applies to every occurrence of that event and shows as a "Register" button.</p>';
+        echo '<table class="widefat striped"><thead><tr><th>Event</th><th>Register URL</th></tr></thead><tbody>';
+        foreach (array_merge($event_titles, $orphans) as $title) {
+            printf(
+                '<tr><td>%1$s%2$s</td><td><input type="url" class="large-text" name="%3$s[%4$s]" value="%5$s" placeholder="https://"></td></tr>',
+                esc_html($title),
+                in_array($title, $orphans, true) ? ' <em>(not in current Elvanto data)</em>' : '',
+                esc_attr(KCG_Elvanto_Event_Merger::REGISTER_LINKS_OPTION),
+                esc_attr($title),
+                esc_attr($saved[$title] ?? '')
+            );
+        }
+        echo '</tbody></table>';
+    }
+
     public function admin_page() {
         $merged = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_merged_events() : array();
         $service_types = $this->distinct($merged, 'service_type');
         $calendars = $this->distinct($merged, 'calendar_name');
+        $event_titles = $this->distinct(array_filter($merged, function ($item) {
+            return ($item['source'] ?? '') === 'event';
+        }), 'title');
         $preview = array_slice($merged, 0, 8);
         ?>
         <div class="wrap">
@@ -128,12 +158,15 @@ class KCG_Elvanto_Shortcodes_Admin {
             </div>
 
             <div class="postbox" style="max-width: 900px;">
-                <h2 class="hndle"><span>Service type links</span></h2>
+                <h2 class="hndle"><span>Links</span></h2>
                 <div class="inside">
                     <form method="post" action="options.php">
                         <?php
                         settings_fields(self::SETTINGS_GROUP);
+                        echo '<h3>Service type links</h3>';
                         $this->render_service_links($service_types);
+                        echo '<h3>Event register links</h3>';
+                        $this->render_register_links($event_titles);
                         submit_button();
                         ?>
                     </form>

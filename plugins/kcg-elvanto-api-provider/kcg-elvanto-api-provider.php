@@ -50,6 +50,8 @@ require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-api-admin.p
 // Service-type links feed into merged_events, so rebuild it when they change.
 add_action('update_option_' . KCG_Elvanto_Event_Merger::SERVICE_LINKS_OPTION, array('KCG_Elvanto_Cache', 'invalidate_merged_events'));
 add_action('add_option_' . KCG_Elvanto_Event_Merger::SERVICE_LINKS_OPTION, array('KCG_Elvanto_Cache', 'invalidate_merged_events'));
+add_action('update_option_' . KCG_Elvanto_Event_Merger::REGISTER_LINKS_OPTION, array('KCG_Elvanto_Cache', 'invalidate_merged_events'));
+add_action('add_option_' . KCG_Elvanto_Event_Merger::REGISTER_LINKS_OPTION, array('KCG_Elvanto_Cache', 'invalidate_merged_events'));
 
 // Register activation and deactivation hooks
 register_activation_hook(__FILE__, function() {
