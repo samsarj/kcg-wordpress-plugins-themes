@@ -10,27 +10,30 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!function_exists('kcg_elvanto_no_service_dates_message')) {
-    require_once __DIR__ . '/helpers.php';
-}
+/**
+ * [kcg_preaching_table] shortcode: a sortable table of upcoming services with their speaker.
+ *
+ * Examples:
+ *   [kcg_preaching_table service_type="Sunday Service" limit="12"]
+ *   [kcg_preaching_table type="Sunday Service"]
+ *   [kcg_preaching_table calendar="Youth" source="all"]
+ *
+ * Defaults to services only (source="service") because the speaker comes from the service plan.
+ */
+class KCG_Elvanto_Preaching_Table_Shortcode {
 
-class KCG_Elvanto_Preaching_Display {
-    
-    /**
-     * Constructor
-     */
-    public function __construct() {
-        // Register service-view shortcodes
+    public function register() {
+        add_shortcode('kcg_preaching_table', array($this, 'render'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'));
     }
 
-    public function register_service_shortcodes() {
-        add_shortcode('kcg_preaching_table', array($this, 'render_preaching_table'));
+    public function enqueue_assets() {
+        $url = plugin_dir_url(__FILE__);
+        wp_enqueue_style('kcg-preaching-table', $url . 'preaching-table.css', array(), filemtime(__DIR__ . '/preaching-table.css'));
+        wp_enqueue_script('kcg-preaching-table', $url . 'preaching-table.js', array(), filemtime(__DIR__ . '/preaching-table.js'), true);
     }
-    
-    /**
-     * Register REST API routes
-     */
+
     public function register_rest_routes() {
         register_rest_route(
             'kcg-elvanto/v1',
@@ -42,9 +45,9 @@ class KCG_Elvanto_Preaching_Display {
             )
         );
     }
-    
+
     /**
-     * Get preaching services from the provider cache.
+     * Upcoming services from merged_events.
      */
     public function get_preaching_services($request) {
         if (!class_exists('KCG_Elvanto_Cache')) {
@@ -59,7 +62,7 @@ class KCG_Elvanto_Preaching_Display {
             );
         }
 
-        $services = KCG_Elvanto_Cache::get_services();
+        $services = KCG_Elvanto_Event_Query::get(array('source' => 'service', 'limit' => 0));
 
         return new WP_REST_Response(
             array(
@@ -71,56 +74,17 @@ class KCG_Elvanto_Preaching_Display {
             200
         );
     }
-    
-    /**
-     * Filter events by service type using the provider-backed cache payload.
-     */
-    private function filter_by_service_type($events, $service_type) {
-        if (!is_array($events)) {
-            return array();
-        }
 
-        $filtered_services = array();
-        $requested_service_type = (string) $service_type;
-
-        foreach ($events as $event) {
-            if (!is_array($event)) {
-                continue;
-            }
-
-            if ($requested_service_type === '') {
-                $filtered_services[] = $event;
-                continue;
-            }
-
-            $event_service_type = (string) ($event['service_type']['name'] ?? ($event['service_type'] ?? ''));
-            if ($event_service_type !== $requested_service_type) {
-                continue;
-            }
-
-            $filtered_services[] = $event;
-        }
-
-        usort($filtered_services, function($a, $b) {
-            return (KCG_Elvanto_Datetime::timestamp($a['date'] ?? '') ?? 0) <=> (KCG_Elvanto_Datetime::timestamp($b['date'] ?? '') ?? 0);
-        });
-        
-        return $filtered_services;
-    }
-    
-
-    /**
-     * Render the preaching table shortcode
-     */
-    public function render_preaching_table($atts = array()) {
+    public function render($atts = array()) {
         $atts = shortcode_atts(
-            array(
-                'service_type' => '',
-                'limit' => 10,
-                'show_time' => 'no',
-                'show_location' => 'no',
-                'show_description' => 'no',
-                'class' => 'kcg-preaching-table'
+            array_merge(
+                KCG_Elvanto_Event_Query::filter_defaults('service'),
+                array(
+                    'show_time' => 'no',
+                    'show_location' => 'no',
+                    'show_description' => 'no',
+                    'class' => 'kcg-preaching-table',
+                )
             ),
             $atts,
             'kcg_preaching_table'
@@ -130,22 +94,9 @@ class KCG_Elvanto_Preaching_Display {
             return '<div class="kcg-preaching-error">The Elvanto API provider is not available.</div>';
         }
 
-        $events = KCG_Elvanto_Cache::get_services();
-
-        if (!empty($atts['service_type'])) {
-            $filtered_services = $this->filter_by_service_type($events, $atts['service_type']);
-        } else {
-            $filtered_services = $events;
-        }
-
-        $limit = intval($atts['limit']);
-        if ($limit > 0) {
-            $filtered_services = array_slice($filtered_services, 0, $limit);
-        }
-
-        return $this->build_table_html($filtered_services, $atts);
+        return $this->build_table_html(KCG_Elvanto_Event_Query::get($atts), $atts);
     }
-    
+
     /**
      * Extract the service series label from either the API field or a normalized alias.
      */
@@ -155,13 +106,9 @@ class KCG_Elvanto_Preaching_Display {
         }
 
         $candidates = array(
-            $service['series_name'] ?? null,
-            $service['series'] ?? null,
-            $service['series_name']['name'] ?? null,
-            $service['series']['name'] ?? null,
-            $service['service_type']['name'] ?? null,
             $service['subtitle'] ?? null,
-            $service['name'] ?? null,
+            $service['service_type'] ?? null,
+            $service['title'] ?? null,
         );
 
         foreach ($candidates as $candidate) {
@@ -212,12 +159,7 @@ class KCG_Elvanto_Preaching_Display {
             return 'TBD';
         }
 
-        $candidates = array(
-            $service['preacher'] ?? null,
-            $service['speaker'] ?? null,
-            $service['leader'] ?? null,
-            $service['volunteers'] ?? null,
-        );
+        $candidates = array($service['volunteers'] ?? null);
 
         foreach ($candidates as $candidate) {
             $value = $this->extract_person_name($candidate);
@@ -330,8 +272,7 @@ class KCG_Elvanto_Preaching_Display {
      */
     private function build_table_html($services, $atts) {
         if (empty($services)) {
-            $service_type = trim((string) ($atts['service_type'] ?? ''));
-            return '<div class="kcg-preaching-no-services">' . esc_html(kcg_elvanto_no_service_dates_message($service_type)) . '</div>';
+            return '<div class="kcg-preaching-no-services">' . esc_html(KCG_Elvanto_Event_Query::no_results_message($atts)) . '</div>';
         }
         
         $class = esc_attr($atts['class']);
@@ -355,11 +296,10 @@ class KCG_Elvanto_Preaching_Display {
             $html .= '<tr>';
             
             // Date column
-            $date_value = $service['date'] ?? '';
-            $service_datetime = KCG_Elvanto_Datetime::parse($date_value);
+            $service_datetime = KCG_Elvanto_Event_Query::datetime($service);
             $date_display = $service_datetime
                 ? wp_date(get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
-                : ($service['formatted_date'] ?? $date_value);
+                : ($service['date'] ?? '');
             $html .= '<td class="date-cell">' . esc_html($date_display) . '</td>';
             
             // Series column

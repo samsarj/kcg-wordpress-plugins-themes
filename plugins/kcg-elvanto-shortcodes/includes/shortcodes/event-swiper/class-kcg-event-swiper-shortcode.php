@@ -1,9 +1,13 @@
 <?php
 
 /**
- * Display functionality for Elvanto Swiper Plugin
+ * [elvanto_swiper] shortcode: a carousel of upcoming services and events.
  *
- * @package ElvantoSwiper
+ * Examples:
+ *   [elvanto_swiper limit="6"]
+ *   [elvanto_swiper calendar="Youth"]
+ *   [elvanto_swiper source="event" calendar="Youth,Kids"]
+ *   [elvanto_swiper service_type="Sunday Service"]
  */
 
 // Prevent direct access
@@ -11,13 +15,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Elvanto_Swiper_Display
+class KCG_Elvanto_Event_Swiper_Shortcode
 {
 
-    /**
-     * Initialize display functionality
-     */
-    public function __construct()
+    public function register()
     {
         add_shortcode('elvanto_swiper', array($this, 'shortcode_callback'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
@@ -37,9 +38,9 @@ class Elvanto_Swiper_Display
         // Enqueue our custom CSS
         wp_enqueue_style(
             'elvanto-swiper-css',
-            ELVANTO_SWIPER_URL . 'includes/assets/elvanto-swiper.css',
+            plugin_dir_url(__FILE__) . 'elvanto-swiper.css',
             array(),
-            filemtime(ELVANTO_SWIPER_PATH . 'includes/assets/elvanto-swiper.css')
+            filemtime(__DIR__ . '/elvanto-swiper.css')
         );
 
         // Enqueue Swiper JS
@@ -54,9 +55,9 @@ class Elvanto_Swiper_Display
         // Enqueue our custom JS
         wp_enqueue_script(
             'elvanto-swiper-js',
-            ELVANTO_SWIPER_URL . 'includes/assets/elvanto-swiper.js',
+            plugin_dir_url(__FILE__) . 'elvanto-swiper.js',
             array('swiper-js'),
-            filemtime(ELVANTO_SWIPER_PATH . 'includes/assets/elvanto-swiper.js'),
+            filemtime(__DIR__ . '/elvanto-swiper.js'),
             true
         );
     }
@@ -66,29 +67,23 @@ class Elvanto_Swiper_Display
      */
     public function shortcode_callback($atts)
     {
-        // Parse shortcode attributes
-        $atts = shortcode_atts(array(
-            'limit' => 10,
-            'show_date' => true,
-            'show_time' => true,
-            'show_description' => true
-        ), $atts);
+        $atts = shortcode_atts(
+            array_merge(
+                KCG_Elvanto_Event_Query::filter_defaults('all'),
+                array(
+                    'show_date' => true,
+                    'show_time' => true,
+                    'show_description' => true,
+                )
+            ),
+            $atts,
+            'elvanto_swiper'
+        );
 
-        // Get events from API provider
-        if (!class_exists('Elvanto_Swiper_API')) {
-            return '<p>' . esc_html__('API provider not available', 'elvanto-swiper') . '</p>';
-        }
-        
-        $api = new Elvanto_Swiper_API();
-        $events = $api->get_events();
+        $events = KCG_Elvanto_Event_Query::get($atts);
 
         if (empty($events)) {
             return '<p>No upcoming events found.</p>';
-        }
-
-        // Limit events if specified
-        if ($atts['limit'] > 0) {
-            $events = array_slice($events, 0, intval($atts['limit']));
         }
 
         // Start building the HTML
@@ -119,7 +114,7 @@ class Elvanto_Swiper_Display
         $formatted_time = '';
 
         $event_time = trim((string) ($event['time'] ?? ''));
-        $dt = KCG_Elvanto_Datetime::from_local($event['date'] ?? '', $event_time);
+        $dt = KCG_Elvanto_Event_Query::datetime($event);
 
         if ($dt) {
             $display_timezone = KCG_Elvanto_Datetime::timezone();

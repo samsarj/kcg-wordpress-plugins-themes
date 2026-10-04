@@ -170,6 +170,8 @@ class KCG_Elvanto_API_Admin {
         $services = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_services() : array();
         $events = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_events() : array();
         $people = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_people() : array();
+        $calendars = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_calendars() : array();
+        $merged_events = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_merged_events() : array();
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -191,6 +193,14 @@ class KCG_Elvanto_API_Admin {
                         <div style="padding: 12px; border: 1px solid #ddd; background: #fff; border-radius: 4px;">
                             <div style="font-size: 12px; color: #666; text-transform: uppercase;">Events</div>
                             <div style="font-size: 28px; font-weight: 600; margin-top: 8px;"><?php echo esc_html(count($events)); ?></div>
+                        </div>
+                        <div style="padding: 12px; border: 1px solid #ddd; background: #fff; border-radius: 4px;">
+                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Calendars</div>
+                            <div style="font-size: 28px; font-weight: 600; margin-top: 8px;"><?php echo esc_html(count($calendars)); ?></div>
+                        </div>
+                        <div style="padding: 12px; border: 1px solid #ddd; background: #fff; border-radius: 4px;">
+                            <div style="font-size: 12px; color: #666; text-transform: uppercase;">Merged events</div>
+                            <div style="font-size: 28px; font-weight: 600; margin-top: 8px;"><?php echo esc_html(count($merged_events)); ?></div>
                         </div>
                         <div style="padding: 12px; border: 1px solid #ddd; background: #fff; border-radius: 4px;">
                             <div style="font-size: 12px; color: #666; text-transform: uppercase;">People</div>

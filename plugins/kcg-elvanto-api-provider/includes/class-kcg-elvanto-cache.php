@@ -12,11 +12,15 @@ class KCG_Elvanto_Cache {
     const SERVICES_TRANSIENT = 'kcg_elvanto_provider_services';
     const EVENTS_TRANSIENT = 'kcg_elvanto_provider_events';
     const PEOPLE_TRANSIENT = 'kcg_elvanto_provider_people';
+    const CALENDARS_TRANSIENT = 'kcg_elvanto_provider_calendars';
+    const MERGED_EVENTS_TRANSIENT = 'kcg_elvanto_provider_merged_events';
     const META_OPTION = 'kcg_elvanto_provider_cache_meta';
 
     const SERVICES_TTL = 30 * MINUTE_IN_SECONDS;
     const EVENTS_TTL = 30 * MINUTE_IN_SECONDS;
     const PEOPLE_TTL = 2 * HOUR_IN_SECONDS;
+    const CALENDARS_TTL = 6 * HOUR_IN_SECONDS;
+    const MERGED_EVENTS_TTL = 30 * MINUTE_IN_SECONDS;
     const SERVICES_RANGE_DAYS = 365;
     const EVENTS_RANGE_DAYS = 30;
 
@@ -64,9 +68,12 @@ class KCG_Elvanto_Cache {
         $results = array(
             'services' => self::refresh_services( $force ),
             'events' => self::refresh_events( $force ),
+            'calendars' => self::refresh_calendars( $force ),
             'people' => self::refresh_people( $force ),
-            'timestamp' => current_time( 'mysql' ),
         );
+        // Always rebuilt last so it reflects whatever the source datasets now hold.
+        $results['merged_events'] = self::refresh_merged_events();
+        $results['timestamp'] = current_time( 'mysql' );
 
         $meta = get_option( self::META_OPTION, array() );
         $meta['last_refresh'] = current_time( 'mysql' );
@@ -122,6 +129,47 @@ class KCG_Elvanto_Cache {
     }
 
     /**
+     * Fetch and cache the calendars dataset.
+     *
+     * @param bool $force
+     * @return bool
+     */
+    public static function refresh_calendars( $force = false ) {
+        return self::refresh_dataset(
+            'calendars',
+            self::CALENDARS_TRANSIENT,
+            self::CALENDARS_TTL,
+            function () {
+                return KCG_Elvanto_API_Client::fetch_calendars();
+            },
+            $force
+        );
+    }
+
+    /**
+     * Rebuild and cache merged_events from the cached services, events and calendars.
+     *
+     * @return bool
+     */
+    public static function refresh_merged_events() {
+        if ( ! class_exists( 'KCG_Elvanto_Event_Merger' ) ) {
+            return false;
+        }
+
+        $merged = KCG_Elvanto_Event_Merger::merge(
+            self::get_events(),
+            self::get_services(),
+            self::get_calendars()
+        );
+
+        set_transient( self::MERGED_EVENTS_TRANSIENT, $merged, self::MERGED_EVENTS_TTL );
+        unset( self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] );
+        self::store_meta_status( 'merged_events', 'success', array( 'count' => count( $merged ) ) );
+
+        return true;
+    }
+
+    /**
      * Fetch and cache the people dataset.
      *
      * @param bool $force
@@ -159,8 +207,11 @@ class KCG_Elvanto_Cache {
         }
 
         set_transient( $transient_name, $payload, $ttl );
-        unset( self::$request_cache[ $transient_name ] );
+        unset( self::$request_cache[ $transient_name ], self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] );
         update_option( $transient_name, $payload );
+        if ( 'people' !== $key ) {
+            delete_transient( self::MERGED_EVENTS_TRANSIENT );
+        }
         self::store_meta_status( $key, 'success', array( 'count' => count( $payload ) ) );
 
         return true;
@@ -239,6 +290,51 @@ class KCG_Elvanto_Cache {
         }
 
         return self::$request_cache[ self::EVENTS_TRANSIENT ] = is_array( $events ) ? $events : array();
+    }
+
+    /**
+     * Get the cached calendars payload.
+     */
+    public static function get_calendars() {
+        if ( isset( self::$request_cache[ self::CALENDARS_TRANSIENT ] ) ) {
+            return self::$request_cache[ self::CALENDARS_TRANSIENT ];
+        }
+
+        $calendars = get_transient( self::CALENDARS_TRANSIENT );
+
+        if ( false === $calendars ) {
+            self::refresh_calendars();
+            $calendars = get_transient( self::CALENDARS_TRANSIENT );
+        }
+
+        return self::$request_cache[ self::CALENDARS_TRANSIENT ] = is_array( $calendars ) ? $calendars : array();
+    }
+
+    /**
+     * Get merged_events: services and events combined into one chronologically sorted list.
+     * See KCG_Elvanto_Event_Merger for the field mappings.
+     */
+    public static function get_merged_events() {
+        if ( isset( self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] ) ) {
+            return self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ];
+        }
+
+        $merged = get_transient( self::MERGED_EVENTS_TRANSIENT );
+
+        if ( false === $merged ) {
+            self::refresh_merged_events();
+            $merged = get_transient( self::MERGED_EVENTS_TRANSIENT );
+        }
+
+        return self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] = is_array( $merged ) ? $merged : array();
+    }
+
+    /**
+     * Drop the cached merged_events so the next read rebuilds it (e.g. after a link setting changes).
+     */
+    public static function invalidate_merged_events() {
+        delete_transient( self::MERGED_EVENTS_TRANSIENT );
+        unset( self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] );
     }
 
     /**

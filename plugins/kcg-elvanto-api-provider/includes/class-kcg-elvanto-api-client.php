@@ -84,6 +84,16 @@ class KCG_Elvanto_API_Client {
     }
 
     /**
+     * Fetch the calendars that events can be assigned to.
+     *
+     * @param array|null $debug_info
+     * @return array|WP_Error
+     */
+    public static function fetch_calendars(?array &$debug_info = null) {
+        return self::fetch_post('calendar/getAll.php', array(), 'calendars', 'calendar', $debug_info);
+    }
+
+    /**
      * Fetch people from Elvanto.
      *
      * @param array $params
