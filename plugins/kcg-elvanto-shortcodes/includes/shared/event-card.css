@@ -96,11 +96,14 @@
     width: 100%;
 }
 
-/* Compact variant used by [next-on-card]: image beside the title, no stretching. */
+/* Compact variant used by [next-on-card].
+   Override the width with the shortcode's width="" attribute, or in theme CSS, e.g.
+   .kcg-next-on-card { --kcg-next-on-width: 20rem; } */
 .event-card--compact {
     height: auto !important;
-    width: auto;
-    max-width: 28rem;
+    width: var(--kcg-next-on-width, 100%);
+    max-width: var(--kcg-next-on-width, 28rem);
+    box-sizing: border-box;
     text-align: left;
 }
 

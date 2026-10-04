@@ -6,7 +6,9 @@
  * Examples:
  *   [next-on-card type="Sunday Service"]        service type or calendar name
  *   [next-on-card service_type="Prayer Night"]  service type only
- *   [next-on-card calendar="Youth" align="center"]
+ *   [next-on-card calendar="Youth" align="center" width="20rem"]
+ *
+ * width accepts a CSS length (px, rem, em, %, vw, ch) or auto / fit-content / max-content.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -28,7 +30,7 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
 
     public function render( $atts = array() ) {
         $atts = shortcode_atts(
-            array_merge( KCG_Elvanto_Event_Query::filter_defaults( 'all' ), array( 'align' => '' ) ),
+            array_merge( KCG_Elvanto_Event_Query::filter_defaults( 'all' ), array( 'align' => '', 'width' => '' ) ),
             $atts,
             'next-on-card'
         );
@@ -41,6 +43,12 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
         $align = strtolower( trim( (string) $atts['align'] ) );
         $flex  = array( 'left' => 'flex-start', 'center' => 'center', 'right' => 'flex-end' );
         $style = isset( $flex[ $align ] ) ? ' style="display:flex;justify-content:' . $flex[ $align ] . ';"' : '';
+
+        $width = trim( (string) $atts['width'] );
+        if ( preg_match( '/^(\d+(\.\d+)?(px|rem|em|%|vw|ch)|auto|fit-content|max-content)$/i', $width ) ) {
+            $style = '' === $style ? ' style="' : rtrim( $style, '"' ) . ';';
+            $style .= '--kcg-next-on-width:' . $width . ';"';
+        }
 
         $item = KCG_Elvanto_Event_Query::next( $atts );
         if ( ! $item ) {
