@@ -96,22 +96,15 @@
     width: 100%;
 }
 
-/* Compact variant used by [next-on-card]: shrinks to fit its content, never wrapping the text.
-   Override the width with the shortcode's width="" attribute, or in theme CSS, e.g.
-   .kcg-next-on-card { --kcg-next-on-width: 20rem; } */
+/* Compact variant used by [next-on-card]: fits its content up to a maximum width, then wraps.
+   Override with the shortcode's width="" attribute (a fixed width), or in theme CSS, e.g.
+   .kcg-next-on-card { --kcg-next-on-width: 20rem; --kcg-next-on-max-width: 24rem; } */
 .event-card--compact {
     height: auto !important;
     width: var(--kcg-next-on-width, fit-content);
-    max-width: 100%;
+    max-width: min(100%, var(--kcg-next-on-max-width, 28rem));
     box-sizing: border-box;
     text-align: left;
-}
-
-.event-card--compact .event-title h4,
-.event-card--compact .event-title h5,
-.event-card--compact .event-date-time,
-.event-card--compact .event-locations {
-    white-space: nowrap;
 }
 
 .event-card--compact img {
