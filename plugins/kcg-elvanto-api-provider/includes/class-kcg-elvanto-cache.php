@@ -122,7 +122,8 @@ class KCG_Elvanto_Cache {
                 $start_date = current_time( 'Y-m-d' );
                 $end_date = date_i18n( 'Y-m-d', strtotime( '+' . self::EVENTS_RANGE_DAYS . ' days' ) );
 
-                return KCG_Elvanto_API_Client::fetch_events( $start_date, $end_date, array() );
+                // register_url is only returned when requested, and only for events that have one.
+                return KCG_Elvanto_API_Client::fetch_events( $start_date, $end_date, array( 'register_url' ) );
             },
             $force
         );
