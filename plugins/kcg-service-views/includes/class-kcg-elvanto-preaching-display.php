@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!function_exists('kcg_elvanto_parse_service_datetime')) {
+if (!function_exists('kcg_elvanto_no_service_dates_message')) {
     require_once __DIR__ . '/helpers.php';
 }
 
@@ -102,11 +102,7 @@ class KCG_Elvanto_Preaching_Display {
         }
 
         usort($filtered_services, function($a, $b) {
-            $date_a = kcg_elvanto_parse_service_datetime($a['date'] ?? $a['start_date'] ?? '1970-01-01');
-            $date_b = kcg_elvanto_parse_service_datetime($b['date'] ?? $b['start_date'] ?? '1970-01-01');
-            $ts_a = $date_a ? $date_a->getTimestamp() : 0;
-            $ts_b = $date_b ? $date_b->getTimestamp() : 0;
-            return $ts_a <=> $ts_b;
+            return (KCG_Elvanto_Datetime::timestamp($a['date'] ?? '') ?? 0) <=> (KCG_Elvanto_Datetime::timestamp($b['date'] ?? '') ?? 0);
         });
         
         return $filtered_services;
@@ -135,10 +131,6 @@ class KCG_Elvanto_Preaching_Display {
         }
 
         $events = KCG_Elvanto_Cache::get_services();
-
-        if (empty($events)) {
-            return '<div class="kcg-preaching-error">No services are available in the provider cache yet.</div>';
-        }
 
         if (!empty($atts['service_type'])) {
             $filtered_services = $this->filter_by_service_type($events, $atts['service_type']);
@@ -338,8 +330,8 @@ class KCG_Elvanto_Preaching_Display {
      */
     private function build_table_html($services, $atts) {
         if (empty($services)) {
-            $filter_text = !empty($atts['service_type']) ? ' matching "' . esc_html($atts['service_type']) . '"' : '';
-            return '<div class="kcg-preaching-no-services">No services found' . $filter_text . '.</div>';
+            $service_type = trim((string) ($atts['service_type'] ?? ''));
+            return '<div class="kcg-preaching-no-services">' . esc_html(kcg_elvanto_no_service_dates_message($service_type)) . '</div>';
         }
         
         $class = esc_attr($atts['class']);
@@ -363,8 +355,8 @@ class KCG_Elvanto_Preaching_Display {
             $html .= '<tr>';
             
             // Date column
-            $date_value = $service['date'] ?? $service['start_date'] ?? '';
-            $service_datetime = kcg_elvanto_parse_service_datetime($date_value);
+            $date_value = $service['date'] ?? '';
+            $service_datetime = KCG_Elvanto_Datetime::parse($date_value);
             $date_display = $service_datetime
                 ? wp_date(get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
                 : ($service['formatted_date'] ?? $date_value);

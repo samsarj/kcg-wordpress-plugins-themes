@@ -40,6 +40,7 @@ class KCG_Elvanto_API_Registry {
 
 // Load shared API client
 require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-api-client.php');
+require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-datetime.php');
 require_once(plugin_dir_path(__FILE__) . 'includes/class-kcg-elvanto-cache.php');
 
 // Load admin functionality

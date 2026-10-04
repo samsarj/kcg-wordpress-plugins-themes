@@ -20,6 +20,9 @@ class KCG_Elvanto_Cache {
     const SERVICES_RANGE_DAYS = 365;
     const EVENTS_RANGE_DAYS = 30;
 
+    /** Per-request copy of transient payloads, cleared whenever a dataset is refreshed. */
+    private static $request_cache = array();
+
     /**
      * Register background refresh hooks and ensure a schedule exists.
      */
@@ -156,6 +159,7 @@ class KCG_Elvanto_Cache {
         }
 
         set_transient( $transient_name, $payload, $ttl );
+        unset( self::$request_cache[ $transient_name ] );
         update_option( $transient_name, $payload );
         self::store_meta_status( $key, 'success', array( 'count' => count( $payload ) ) );
 
@@ -166,6 +170,10 @@ class KCG_Elvanto_Cache {
      * Get the cached services payload.
      */
     public static function get_services() {
+        if ( isset( self::$request_cache[ self::SERVICES_TRANSIENT ] ) ) {
+            return self::$request_cache[ self::SERVICES_TRANSIENT ];
+        }
+
         $services = get_transient( self::SERVICES_TRANSIENT );
 
         if ( false === $services ) {
@@ -181,7 +189,7 @@ class KCG_Elvanto_Cache {
 
         $services = is_array( $services ) ? $services : array();
 
-        return $services;
+        return self::$request_cache[ self::SERVICES_TRANSIENT ] = $services;
     }
 
     /**
@@ -219,6 +227,10 @@ class KCG_Elvanto_Cache {
      * Get the cached events payload.
      */
     public static function get_events() {
+        if ( isset( self::$request_cache[ self::EVENTS_TRANSIENT ] ) ) {
+            return self::$request_cache[ self::EVENTS_TRANSIENT ];
+        }
+
         $events = get_transient( self::EVENTS_TRANSIENT );
 
         if ( false === $events ) {
@@ -226,7 +238,7 @@ class KCG_Elvanto_Cache {
             $events = get_transient( self::EVENTS_TRANSIENT );
         }
 
-        return is_array( $events ) ? $events : array();
+        return self::$request_cache[ self::EVENTS_TRANSIENT ] = is_array( $events ) ? $events : array();
     }
 
     /**
@@ -277,7 +289,8 @@ class KCG_Elvanto_Cache {
 
         $meta = get_option( self::META_OPTION, array() );
         $key = str_replace( 'kcg_elvanto_provider_', '', $transient_name );
-        $updated = ! empty( $meta[ $key ]['updated_at'] ) ? strtotime( $meta[ $key ]['updated_at'] ) : 0;
+        $updated_at = ! empty( $meta[ $key ]['updated_at'] ) ? DateTime::createFromFormat( 'Y-m-d H:i:s', $meta[ $key ]['updated_at'], wp_timezone() ) : false;
+        $updated = $updated_at ? $updated_at->getTimestamp() : 0;
 
         if ( ! $updated ) {
             return true;

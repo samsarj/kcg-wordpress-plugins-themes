@@ -39,26 +39,12 @@ class KCG_Elvanto_Preaching_Admin {
     public function admin_page() {
         $services = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_services() : array();
 
-        $upcoming_services = array_filter($services, function ($service) {
-            if (!is_array($service)) {
-                return false;
-            }
-
-            $date_value = trim((string) ($service['date'] ?? $service['start_date'] ?? ''));
-            if ($date_value === '') {
-                return false;
-            }
-
-            return strtotime($date_value) > current_time('timestamp');
+        // The provider only fetches future services, so no upcoming filter is needed.
+        usort($services, function ($a, $b) {
+            return (KCG_Elvanto_Datetime::timestamp($a['date'] ?? '') ?? 0) <=> (KCG_Elvanto_Datetime::timestamp($b['date'] ?? '') ?? 0);
         });
 
-        usort($upcoming_services, function ($a, $b) {
-            $date_a = strtotime((string) ($a['date'] ?? $a['start_date'] ?? ''));
-            $date_b = strtotime((string) ($b['date'] ?? $b['start_date'] ?? ''));
-            return ($date_a ?: PHP_INT_MAX) <=> ($date_b ?: PHP_INT_MAX);
-        });
-
-        $upcoming_services = array_slice($upcoming_services, 0, 5);
+        $upcoming_services = array_slice($services, 0, 5);
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -91,11 +77,11 @@ class KCG_Elvanto_Preaching_Admin {
                                 <?php
                                 $service_name = trim((string) ($service['name'] ?? $service['title'] ?? 'Untitled'));
                                 $service_type_name = trim((string) ($service['service_type']['name'] ?? $service['service_type'] ?? ''));
-                                $service_date = trim((string) ($service['date'] ?? $service['start_date'] ?? ''));
+                                $service_date = trim((string) ($service['date'] ?? ''));
                                 $location_name = is_array($service['location'] ?? null)
                                     ? trim((string) ($service['location']['name'] ?? ''))
                                     : trim((string) ($service['location'] ?? ''));
-                                $service_datetime = $service_date !== '' ? kcg_elvanto_parse_service_datetime($service_date) : null;
+                                $service_datetime = $service_date !== '' ? KCG_Elvanto_Datetime::parse($service_date) : null;
                                 $formatted_service_date = $service_datetime
                                     ? wp_date(get_option('time_format') . ' | ' . get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
                                     : '';

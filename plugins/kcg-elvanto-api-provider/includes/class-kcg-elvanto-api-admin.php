@@ -116,8 +116,8 @@ class KCG_Elvanto_API_Admin {
         // Do not guess field names for the provider test request. Use a broad date window and
         // allow the provider to confirm supported fields before a stricter request is tested.
         $body_data = array(
-            'start' => date('Y-m-d'),
-            'end' => date('Y-m-d', strtotime('+7 days')),
+            'start' => current_time('Y-m-d'),
+            'end' => wp_date('Y-m-d', time() + 7 * DAY_IN_SECONDS),
         );
 
         // Override with custom options if provided

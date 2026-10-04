@@ -175,34 +175,12 @@ class Elvanto_Swiper_Admin {
                             <?php foreach ($preview_events as $event): ?>
                                 <?php
                                 $event_date = trim((string) ($event['date'] ?? $event['start_date'] ?? ''));
-                                $event_time = trim((string) ($event['time'] ?? ''));
-                                $date_time_value = $event_date;
-                                $date_timezone = wp_timezone();
-                                $date_includes_time = $event_date !== '' && (bool) preg_match('/^\d{4}-\d{2}-\d{2}[ T]/', $event_date);
-
-                                if ($date_includes_time) {
-                                    $date_timezone = new DateTimeZone('UTC');
-                                } elseif ($event_date !== '' && $event_time !== '') {
-                                    $date_time_value .= ' ' . $event_time;
-                                }
-
-                                $event_datetime = null;
-                                foreach (array('Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i', 'Y-m-d') as $format) {
-                                    $parsed_datetime = DateTime::createFromFormat($format, $date_time_value, $date_timezone);
-                                    if ($parsed_datetime instanceof DateTime) {
-                                        $errors = DateTime::getLastErrors();
-                                        if ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
-                                            continue;
-                                        }
-                                        $event_datetime = $parsed_datetime->setTimezone(function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone());
-                                        break;
-                                    }
-                                }
+                                $event_datetime = KCG_Elvanto_Datetime::parse($event_date);
 
                                 $formatted_event_date = $event_datetime
                                     ? wp_date(get_option('date_format'), $event_datetime->getTimestamp(), $event_datetime->getTimezone())
                                     : $event_date;
-                                $formatted_event_time = $event_datetime && ($event_time !== '' || $date_includes_time) && empty($event['all_day'])
+                                $formatted_event_time = $event_datetime && KCG_Elvanto_Datetime::has_time($event_date) && empty($event['all_day'])
                                     ? wp_date(get_option('time_format'), $event_datetime->getTimestamp(), $event_datetime->getTimezone())
                                     : '';
                                 ?>

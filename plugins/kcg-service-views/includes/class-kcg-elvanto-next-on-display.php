@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if ( ! function_exists( 'kcg_elvanto_parse_service_datetime' ) ) {
+if ( ! function_exists( 'kcg_get_next_service_by_type' ) ) {
     require_once __DIR__ . '/helpers.php';
 }
 
@@ -39,9 +39,9 @@ class KCG_Elvanto_Next_On_Display {
             return '';
         }
 
-        $service = $this->get_next_service( $service_type );
-        if ( empty( $service ) ) {
-            return '';
+        $service = kcg_get_next_service_by_type( $service_type );
+        if ( ! $service ) {
+            return '<div class="kcg-next-on"' . $alignment_style . '><p>' . esc_html( kcg_elvanto_no_service_dates_message( $service_type ) ) . '</p></div>';
         }
 
         $service_name = trim( (string) ( $service['name'] ?? $service['service_type']['name'] ?? $service_type ) );
@@ -55,15 +55,7 @@ class KCG_Elvanto_Next_On_Display {
         }
 
 
-        $service_date = trim( (string) ( $service['date'] ?? '' ) );
-        if ( '' === $service_date ) {
-            return '<div class="kcg-next-on"><h3>' . esc_html( $service_name ) . '</h3></div>';
-        }
-
-        $date_obj = $this->get_service_datetime( $service );
-        if ( ! $date_obj ) {
-            return '<div class="kcg-next-on"><h3>' . esc_html( $service_name ) . '</h3></div>';
-        }
+        $date_obj = KCG_Elvanto_Datetime::parse( $service['date'] );
 
         $location = '';
         if ( ! empty( $service['location'] ) ) {
@@ -89,78 +81,5 @@ class KCG_Elvanto_Next_On_Display {
         $output .= '<p style="font-size: 0.8em;">' . esc_html( $time_display . ' | ' . $date_display . ' | ' . $location_display ) . '</p>';
         $output .= '</div>';
         return $output;
-    }
-
-    private function get_service_datetime( $service ) {
-        if ( ! is_array( $service ) ) {
-            return null;
-        }
-
-        $raw_value = trim( (string) ( $service['date'] ?? $service['start_date'] ?? '' ) );
-        if ( '' === $raw_value ) {
-            return null;
-        }
-
-        return kcg_elvanto_parse_service_datetime( $raw_value );
-    }
-
-    private function get_next_service( $service_type ) {
-        if ( ! class_exists( 'KCG_Elvanto_Cache' ) ) {
-            return array();
-        }
-
-        $requested_type = (string) $service_type;
-        if ( '' === $requested_type ) {
-            return array();
-        }
-
-        $services = KCG_Elvanto_Cache::get_services();
-        if ( empty( $services ) ) {
-            return array();
-        }
-
-        $matches = array();
-        $now = current_time( 'timestamp' );
-
-        foreach ( $services as $service ) {
-            if ( ! is_array( $service ) ) {
-                continue;
-            }
-
-            $service_date = trim( (string) ( $service['date'] ?? '' ) );
-            if ( '' === $service_date ) {
-                continue;
-            }
-
-            $service_ts = $this->get_service_datetime( $service );
-            if ( ! $service_ts || $service_ts->getTimestamp() < $now ) {
-                continue;
-            }
-
-            $service_type_name = (string) ( $service['service_type']['name'] ?? '' );
-            if ( $service_type_name === $requested_type ) {
-                $matches[] = $service;
-            }
-        }
-
-        if ( empty( $matches ) ) {
-            return array();
-        }
-
-        usort(
-            $matches,
-            function ( $a, $b ) {
-                $ts_a = $this->get_service_datetime( $a );
-                $ts_b = $this->get_service_datetime( $b );
-                if ( ! $ts_a || ! $ts_b ) {
-                    return 0;
-                }
-                return $ts_a->getTimestamp() <=> $ts_b->getTimestamp();
-            }
-        );
-
-        $selected = $matches[0];
-
-        return $selected;
     }
 }

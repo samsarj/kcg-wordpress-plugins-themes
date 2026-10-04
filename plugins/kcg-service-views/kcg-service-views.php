@@ -22,7 +22,7 @@ define('KCG_SERVICE_VIEWS_VERSION', '1.0.0');
 define('KCG_SERVICE_VIEWS_PATH', plugin_dir_path(__FILE__));
 define('KCG_SERVICE_VIEWS_URL', plugin_dir_url(__FILE__));
 
-if (!function_exists('kcg_elvanto_parse_service_datetime')) {
+if (!function_exists('kcg_elvanto_no_service_dates_message')) {
     require_once KCG_SERVICE_VIEWS_PATH . 'includes/helpers.php';
 }
 

@@ -11,7 +11,24 @@ if (!defined('ABSPATH')) {
 }
 
 class Elvanto_Swiper_API {
-    
+
+    /**
+     * Split an Elvanto date into local "Y-m-d" and "H:i:s" strings ('' time for all-day items).
+     *
+     * @return array{date: string, time: string}
+     */
+    private static function localise_elvanto_date($raw) {
+        $dt = KCG_Elvanto_Datetime::parse($raw);
+        if (!$dt) {
+            return array('date' => trim((string) $raw), 'time' => '');
+        }
+
+        return array(
+            'date' => $dt->format('Y-m-d'),
+            'time' => KCG_Elvanto_Datetime::has_time($raw) ? $dt->format('H:i:s') : '',
+        );
+    }
+
     /**
      * Fetch events from the shared provider cache.
      *
@@ -109,20 +126,11 @@ class Elvanto_Swiper_API {
                     $standardized_event['location'] = $event['where'];
                 }
                 
-                // Elvanto supplies the service time in UTC; convert once to the display timezone before storing local fields.
                 if (!empty($event['start_date'])) {
-                    if (strpos($event['start_date'], ' ') !== false) {
-                        $timezone = function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone();
-                        $source_dt = DateTime::createFromFormat('Y-m-d H:i:s', $event['start_date'], new DateTimeZone('UTC'));
-                        if ($source_dt instanceof DateTime) {
-                            $source_dt = $source_dt->setTimezone($timezone);
-                            $standardized_event['date'] = $source_dt->format('Y-m-d');
-                            $standardized_event['time'] = $source_dt->format('H:i:s');
-                        } else {
-                            $standardized_event['date'] = $event['start_date'];
-                        }
-                    } else {
-                        $standardized_event['date'] = $event['start_date'];
+                    $local = self::localise_elvanto_date($event['start_date']);
+                    $standardized_event['date'] = $local['date'];
+                    if ('' !== $local['time']) {
+                        $standardized_event['time'] = $local['time'];
                     }
                 }
                 
@@ -173,24 +181,11 @@ class Elvanto_Swiper_API {
             'total_event_colors' => count($event_colors)
         ];
         
-        // Sort by date - handle both datetime and separate date formats
+        // Local "Y-m-d" and "H:i:s" strings sort chronologically; all-day events sort first on their day.
         usort($merged, function($a, $b) {
-            // Try to get a comparable timestamp
-            $date_a = $a['date'] ?? $a['start_date'] ?? '1970-01-01';
-            $date_b = $b['date'] ?? $b['start_date'] ?? '1970-01-01';
-            
-            // If it's already a datetime, use it directly, otherwise combine date and time
-            $timestamp_a = strtotime($date_a);
-            $timestamp_b = strtotime($date_b);
-            
-            if (isset($a['time']) && !strpos($date_a, ':')) {
-                $timestamp_a = strtotime($date_a . ' ' . $a['time']);
-            }
-            if (isset($b['time']) && !strpos($date_b, ':')) {
-                $timestamp_b = strtotime($date_b . ' ' . $b['time']);
-            }
-            
-            return $timestamp_a - $timestamp_b;
+            $key_a = ($a['date'] ?? '') . ' ' . ($a['time'] ?? '00:00:00');
+            $key_b = ($b['date'] ?? '') . ' ' . ($b['time'] ?? '00:00:00');
+            return strcmp($key_a, $key_b);
         });
         
         return $merged;
@@ -229,22 +224,11 @@ class Elvanto_Swiper_API {
             $event['subtitle'] = $service['series_name'];
         }
         
-        // Convert the UTC wall time Elvanto gives to the church's display timezone once and only once.
-        $service_date = $service['date'] ?? '';
-        if (!empty($service_date)) {
-            if (strpos($service_date, ' ') !== false) {
-                $timezone = function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone();
-                $source_dt = DateTime::createFromFormat('Y-m-d H:i:s', $service_date, new DateTimeZone('UTC'));
-                if ($source_dt instanceof DateTime) {
-                    $source_dt = $source_dt->setTimezone($timezone);
-                    $event['date'] = $source_dt->format('Y-m-d');
-                    $event['time'] = $source_dt->format('H:i:s');
-                } else {
-                    $event['date'] = $service_date;
-                }
-            } else {
-                // Date only
-                $event['date'] = $service_date;
+        if (!empty($service['date'])) {
+            $local = self::localise_elvanto_date($service['date']);
+            $event['date'] = $local['date'];
+            if ('' !== $local['time']) {
+                $event['time'] = $local['time'];
             }
         }
         
