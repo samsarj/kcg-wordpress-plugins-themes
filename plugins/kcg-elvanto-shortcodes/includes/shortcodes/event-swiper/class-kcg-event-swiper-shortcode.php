@@ -35,6 +35,8 @@ class KCG_Elvanto_Event_Swiper_Shortcode
             'https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css'
         );
 
+        KCG_Elvanto_Event_Card::enqueue_assets();
+
         // Enqueue our custom CSS
         wp_enqueue_style(
             'elvanto-swiper-css',
@@ -93,7 +95,7 @@ class KCG_Elvanto_Event_Swiper_Shortcode
             <div class="swiper-wrapper">
                 <?php foreach ($events as $event): ?>
                     <div class="swiper-slide">
-                        <?php echo $this->render_event_card($event, $atts); ?>
+                        <?php echo KCG_Elvanto_Event_Card::render($event, $atts); ?>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -103,106 +105,4 @@ class KCG_Elvanto_Event_Swiper_Shortcode
         return ob_get_clean();
     }
 
-    /**
-     * Render individual event card
-     */
-    private function render_event_card($event, $atts)
-    {
-        ob_start();
-
-        $formatted_date = '';
-        $formatted_time = '';
-
-        $event_time = trim((string) ($event['time'] ?? ''));
-        $dt = KCG_Elvanto_Event_Query::datetime($event);
-
-        if ($dt) {
-            $display_timezone = KCG_Elvanto_Datetime::timezone();
-            $formatted_date = wp_date(get_option('date_format'), $dt->getTimestamp(), $display_timezone);
-            if ('' !== $event_time && empty($event['all_day'])) {
-                $formatted_time = wp_date(get_option('time_format'), $dt->getTimestamp(), $display_timezone);
-            }
-        }
-
-    ?>
-        <div class="kcg-card event-card" <?php if (!empty($event['color'])): ?> style="border-color: <?php echo esc_attr($event['color']); ?>; background-color: hsl(from <?php echo esc_attr($event['color']); ?> h s 98);" <?php endif; ?>>
-            <div class="event-header">
-                <?php if (!empty($event['picture'])): ?>
-                    <div class="event-image">
-                        <img src="<?php echo esc_url($event['picture']); ?>" alt="<?php echo esc_attr($event['title'] ?? 'Event'); ?>">
-                    </div>
-                <?php endif; ?>
-                <div class="event-title">
-                    <h4><?php echo esc_html($event['title'] ?? 'Event'); ?></h4>
-                    <?php if (!empty($event['subtitle'])): ?>
-                        <h5><?php echo esc_html($event['subtitle']); ?></h5>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <div class="event-content">
-
-                <div class="event-details">
-                    <?php if (($atts['show_date'] && !empty($formatted_date)) || ($atts['show_time'] && !empty($formatted_time))): ?>
-                        <div class="event-date-time">
-                            <?php if ($atts['show_date'] && !empty($formatted_date)): ?>
-                                📅 <?php echo esc_html($formatted_date); ?>
-                            <?php endif; ?>
-
-                            <?php if ($atts['show_time'] && !empty($formatted_time)): ?>
-                                <?php if ($atts['show_date'] && !empty($formatted_date)): ?> | <?php endif; ?>
-                                ⏰ <?php echo esc_html($formatted_time); ?>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($event['location'])): ?>
-                        <div class="event-locations">
-                            📍 <?php echo esc_html($event['location']); ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
-
-                <?php if ($atts['show_description'] && !empty($event['description'])): ?>
-                    <div class="event-description">
-                        <?php echo wp_kses_post(wpautop($event['description'])); ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Event Action Buttons -->
-            <?php
-            // Determine button availability from standardized fields
-            $has_more_info = !empty($event['link_info']) && filter_var($event['link_info'], FILTER_VALIDATE_URL);
-            $has_register = !empty($event['link_register']) && filter_var($event['link_register'], FILTER_VALIDATE_URL);
-
-            // Determine button width class
-            if ($has_more_info && $has_register) {
-                $button_width_class = 'wp-block-button__width-50';
-            } else {
-                $button_width_class = 'wp-block-button__width-100';
-            }
-            ?>
-            <div class="event-buttons wp-block-buttons">
-                <?php if ($has_more_info): ?>
-                    <div class="wp-block-button is-style-outline is-style-outline--2 has-custom-width <?php echo esc_attr($button_width_class); ?>">
-                        <a href="<?php echo esc_url($event['link_info']); ?>" <?php if (!empty($event['color'])): ?> style="border-color: <?php echo esc_attr($event['color']); ?>; color: <?php echo esc_attr($event['color']); ?>; background: transparent;" <?php endif; ?> class="wp-block-button__link wp-element-button" target="_blank">
-                            More Info
-                        </a>
-                    </div>
-                <?php endif; ?>
-
-                <?php if ($has_register): ?>
-                    <div class="wp-block-button has-custom-width <?php echo esc_attr($button_width_class); ?>">
-                        <a href="<?php echo esc_url($event['link_register']); ?>" <?php if (!empty($event['color'])): ?> style="border-color: <?php echo esc_attr($event['color']); ?>; color: var(--wp--preset--color--base); background: <?php echo esc_attr($event['color']); ?>;" <?php endif; ?> class="wp-block-button__link wp-element-button" target="_blank">
-                            Register
-                        </a>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-<?php
-
-        return ob_get_clean();
-    }
 }

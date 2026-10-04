@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Equalize card heights
   function equalizeCardHeights() {
-    const cards = document.querySelectorAll(".event-card");
+    const cards = document.querySelectorAll(".elvanto-swiper .event-card");
     let maxHeight = 0;
 
     // Reset heights first to get natural heights
