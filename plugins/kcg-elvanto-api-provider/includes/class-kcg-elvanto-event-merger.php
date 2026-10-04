@@ -16,8 +16,7 @@
  *   picture        string  service.picture         | event.picture
  *   color          string  matching event colour, else calendar colour, else default (services)
  *   link_info      string  configured service-type link | event.url
- *   link_register  string  (none)                  | configured register link for the event title
- *                          (Elvanto's API does not return registration URLs)
+ *   link_register  string  (none)                  | event.register_url
  *   service_type   string  service.service_type.name | '' for events
  *   calendar_id    string  event.calendar_id, or that of an event sharing the service's id
  *   calendar_name  string  name of the calendar identified by calendar_id
@@ -36,9 +35,6 @@ class KCG_Elvanto_Event_Merger {
     /** Option holding service type => "More Info" URL, edited on the shortcodes settings page. */
     const SERVICE_LINKS_OPTION = 'elvanto_swiper_service_links';
 
-    /** Option holding event title => register URL, edited on the shortcodes settings page. */
-    const REGISTER_LINKS_OPTION = 'kcg_elvanto_event_register_links';
-
     const DEFAULT_SERVICE_COLOR = '#2e7d32';
 
     /**
@@ -55,7 +51,6 @@ class KCG_Elvanto_Event_Merger {
         $calendars_by_id = self::index_by_id( $calendars );
         $events_by_id    = self::index_by_id( $events );
         $service_links   = (array) get_option( self::SERVICE_LINKS_OPTION, array() );
-        $register_links  = (array) get_option( self::REGISTER_LINKS_OPTION, array() );
 
         $merged       = array();
         $service_ids  = array();
@@ -72,7 +67,7 @@ class KCG_Elvanto_Event_Merger {
             if ( ! is_array( $event ) || empty( $event['id'] ) || in_array( $event['id'], $service_ids, true ) ) {
                 continue;
             }
-            $merged[] = self::map_event( $event, $calendars_by_id, $register_links );
+            $merged[] = self::map_event( $event, $calendars_by_id );
         }
 
         // Local "Y-m-d" and "H:i:s" strings sort chronologically; all-day items sort first on their day.
@@ -118,7 +113,7 @@ class KCG_Elvanto_Event_Merger {
         return array_merge( $item, self::split_date( $service['date'] ?? '' ) );
     }
 
-    private static function map_event( array $event, array $calendars_by_id, array $register_links ) {
+    private static function map_event( array $event, array $calendars_by_id ) {
         $calendar = self::calendar_for( $event, $calendars_by_id );
 
         $item = array(
@@ -131,7 +126,7 @@ class KCG_Elvanto_Event_Merger {
             'picture'       => (string) ( $event['picture'] ?? '' ),
             'color'         => (string) ( ! empty( $event['color'] ) ? $event['color'] : ( $calendar['color'] ?? '' ) ),
             'link_info'     => (string) ( $event['url'] ?? '' ),
-            'link_register' => (string) ( $register_links[ trim( (string) ( $event['name'] ?? '' ) ) ] ?? '' ),
+            'link_register' => (string) ( $event['register_url'] ?? '' ),
             'service_type'  => '',
             'calendar_id'   => (string) ( $event['calendar_id'] ?? '' ),
             'calendar_name' => (string) ( $calendar['name'] ?? '' ),
