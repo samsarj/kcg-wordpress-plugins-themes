@@ -74,8 +74,9 @@ class KCG_Elvanto_Next_On_Display {
             }
         }
 
-        $time_display = $date_obj->format( 'g:ia' );
-        $date_display = $date_obj->format( 'D jS M' );
+        $timestamp = $date_obj->getTimestamp();
+        $time_display = wp_date( get_option( 'time_format' ), $timestamp, $date_obj->getTimezone() );
+        $date_display = wp_date( get_option( 'date_format' ), $timestamp, $date_obj->getTimezone() );
         $location_display = '' !== $location ? $location : 'Location TBC';
 
         $output = '<div class="kcg-next-on"' . $alignment_style . '>';

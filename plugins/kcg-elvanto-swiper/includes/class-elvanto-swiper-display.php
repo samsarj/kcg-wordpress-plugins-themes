@@ -139,7 +139,7 @@ class Elvanto_Swiper_Display
             }
 
             if ($dt instanceof DateTime) {
-                $formatted_date = $dt->format('D jS M');
+                $formatted_date = wp_date(get_option('date_format'), $dt->getTimestamp(), $display_timezone);
             }
         }
 
@@ -162,7 +162,7 @@ class Elvanto_Swiper_Display
             }
 
             if ($dt instanceof DateTime) {
-                $formatted_time = $dt->format('g:i A');
+                $formatted_time = wp_date(get_option('time_format'), $dt->getTimestamp(), $display_timezone);
             }
         }
 

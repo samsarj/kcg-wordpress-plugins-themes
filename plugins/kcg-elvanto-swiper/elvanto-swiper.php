@@ -23,7 +23,6 @@ define('ELVANTO_SWIPER_PATH', plugin_dir_path(__FILE__));
 define('ELVANTO_SWIPER_URL', plugin_dir_url(__FILE__));
 
 // Include class files
-require_once ELVANTO_SWIPER_PATH . 'includes/helpers.php';
 require_once ELVANTO_SWIPER_PATH . 'includes/class-elvanto-swiper-api.php';
 require_once ELVANTO_SWIPER_PATH . 'includes/class-elvanto-swiper-admin.php';
 require_once ELVANTO_SWIPER_PATH . 'includes/class-elvanto-swiper-display.php';

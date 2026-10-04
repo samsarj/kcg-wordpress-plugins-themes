@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Get the next Sunday service date
 $next_sunday_timestamp = kcg_checklist_get_next_sunday();
-$display_date = $next_sunday_timestamp ? date_i18n( 'l jS F', $next_sunday_timestamp ) : 'Unknown';
+$display_date = $next_sunday_timestamp ? date_i18n( get_option( 'date_format' ), $next_sunday_timestamp ) : 'Unknown';
 ?>
 
     <div class="week-display">

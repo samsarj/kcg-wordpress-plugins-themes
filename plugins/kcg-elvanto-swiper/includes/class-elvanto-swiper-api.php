@@ -276,7 +276,7 @@ class Elvanto_Swiper_API {
      * Get the appropriate link_info for a service based on configuration
      */
     private function get_service_link_info($service) {
-        $service_links = elvanto_swiper_parse_service_links();
+        $service_links = (array) get_option('elvanto_swiper_service_links', array());
         
         // Try to determine the service type from various possible fields
         $service_type = null;

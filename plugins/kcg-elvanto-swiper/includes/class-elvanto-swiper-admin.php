@@ -18,7 +18,6 @@ class Elvanto_Swiper_Admin {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_admin_page'), 20);
         add_action('admin_init', array($this, 'register_settings'));
-        add_action('admin_init', array($this, 'check_for_manual_actions'));
     }
 
     /**
@@ -39,7 +38,9 @@ class Elvanto_Swiper_Admin {
      * Register plugin settings
      */
     public function register_settings() {
-        register_setting('elvanto_swiper_settings_group', 'elvanto_swiper_service_links');
+        register_setting('elvanto_swiper_settings_group', 'elvanto_swiper_service_links', array(
+            'sanitize_callback' => array($this, 'sanitize_service_links'),
+        ));
         
         add_settings_section(
             'elvanto_swiper_service_links_section', 
@@ -58,31 +59,72 @@ class Elvanto_Swiper_Admin {
     }
 
     /**
+     * Sanitize submitted service links into a type => url array.
+     */
+    public function sanitize_service_links($input) {
+        $clean = array();
+        if (!is_array($input)) {
+            return $clean;
+        }
+        foreach ($input as $type => $url) {
+            $type = sanitize_text_field(wp_unslash((string) $type));
+            $url = esc_url_raw(trim(wp_unslash((string) $url)));
+            if ($type !== '' && $url !== '') {
+                $clean[$type] = $url;
+            }
+        }
+        return $clean;
+    }
+
+    /**
+     * Collect service type names from the provider cache.
+     */
+    private function get_available_service_types() {
+        $types = array();
+        $services = class_exists('KCG_Elvanto_Cache') ? KCG_Elvanto_Cache::get_services() : array();
+        foreach ((array) $services as $service) {
+            $name = trim((string) ($service['service_type']['name'] ?? ''));
+            if ($name !== '') {
+                $types[$name] = true;
+            }
+        }
+        $types = array_keys($types);
+        sort($types, SORT_NATURAL | SORT_FLAG_CASE);
+        return $types;
+    }
+
+    /**
      * Service links section callback
      */
     public function service_links_section_callback() {
-        echo '<p>Configure custom "More Info" links for different service types. When a service card is displayed, it will use the corresponding link below. If no link is specified for a service type, no "More Info" button will be shown.</p>';
-        echo '<p><strong>Format:</strong> One service type per line in the format: <code>Service Type Name|https://example.com/link</code></p>';
-        echo '<p><strong>Example:</strong><br>';
-        echo '<code>Sunday Service|https://kcg.church/sunday-service<br>';
-        echo 'Small Groups|https://kcg.church/small-groups<br>';
-        echo 'Youth Group|https://kcg.church/youth</code></p>';
+        echo '<p>Set a "More Info" link for each service type. Service types are read from Elvanto. Leave a link blank and no "More Info" button is shown for that type.</p>';
     }
 
     /**
      * Service links field callback
      */
     public function service_links_callback() {
-        $service_links = get_option('elvanto_swiper_service_links', '');
-        echo '<textarea name="elvanto_swiper_service_links" rows="8" cols="80" class="large-text">' . esc_textarea($service_links) . '</textarea>';
-        echo '<p class="description">Enter service type links in the format: Service Type Name|URL (one per line)</p>';
-    }
+        $saved = (array) get_option('elvanto_swiper_service_links', array());
+        $available = $this->get_available_service_types();
+        $orphans = array_diff(array_keys($saved), $available);
 
-    /**
-     * Check for manual test button clicks
-     */
-    public function check_for_manual_actions() {
-        // Currently no manual actions for swiper admin
+        if (empty($available) && empty($orphans)) {
+            echo '<p class="description">No service types found. Refresh the cache in the Elvanto API settings first.</p>';
+            return;
+        }
+
+        echo '<table class="widefat striped" style="max-width: 800px;"><thead><tr><th>Service type</th><th>Link URL</th></tr></thead><tbody>';
+        foreach (array_merge($available, $orphans) as $type) {
+            $note = in_array($type, $orphans, true) ? ' <em>(not in current Elvanto data)</em>' : '';
+            printf(
+                '<tr><td>%1$s%2$s</td><td><input type="url" class="large-text" name="elvanto_swiper_service_links[%3$s]" value="%4$s" placeholder="https://"></td></tr>',
+                esc_html($type),
+                $note,
+                esc_attr($type),
+                esc_attr($saved[$type] ?? '')
+            );
+        }
+        echo '</tbody></table>';
     }
 
     /**
@@ -131,12 +173,45 @@ class Elvanto_Swiper_Admin {
                     <?php if (!empty($preview_events)): ?>
                         <ul style="margin: 0; padding-left: 20px;">
                             <?php foreach ($preview_events as $event): ?>
+                                <?php
+                                $event_date = trim((string) ($event['date'] ?? $event['start_date'] ?? ''));
+                                $event_time = trim((string) ($event['time'] ?? ''));
+                                $date_time_value = $event_date;
+                                $date_timezone = wp_timezone();
+                                $date_includes_time = $event_date !== '' && (bool) preg_match('/^\d{4}-\d{2}-\d{2}[ T]/', $event_date);
+
+                                if ($date_includes_time) {
+                                    $date_timezone = new DateTimeZone('UTC');
+                                } elseif ($event_date !== '' && $event_time !== '') {
+                                    $date_time_value .= ' ' . $event_time;
+                                }
+
+                                $event_datetime = null;
+                                foreach (array('Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i', 'Y-m-d') as $format) {
+                                    $parsed_datetime = DateTime::createFromFormat($format, $date_time_value, $date_timezone);
+                                    if ($parsed_datetime instanceof DateTime) {
+                                        $errors = DateTime::getLastErrors();
+                                        if ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+                                            continue;
+                                        }
+                                        $event_datetime = $parsed_datetime->setTimezone(function_exists('kcg_elvanto_display_timezone') ? kcg_elvanto_display_timezone() : wp_timezone());
+                                        break;
+                                    }
+                                }
+
+                                $formatted_event_date = $event_datetime
+                                    ? wp_date(get_option('date_format'), $event_datetime->getTimestamp(), $event_datetime->getTimezone())
+                                    : $event_date;
+                                $formatted_event_time = $event_datetime && ($event_time !== '' || $date_includes_time) && empty($event['all_day'])
+                                    ? wp_date(get_option('time_format'), $event_datetime->getTimestamp(), $event_datetime->getTimezone())
+                                    : '';
+                                ?>
                                 <li style="margin-bottom: 12px;">
                                     <strong><?php echo esc_html($event['title'] ?? $event['name'] ?? 'Untitled'); ?></strong>
                                     <div style="color: #666; font-size: 13px;">
-                                        <?php echo esc_html($event['date'] ?? $event['start_date'] ?? ''); ?>
-                                        <?php if (!empty($event['time'])) : ?>
-                                            &nbsp;|&nbsp;<?php echo esc_html($event['time']); ?>
+                                        <?php echo esc_html($formatted_event_date); ?>
+                                        <?php if ($formatted_event_time !== '') : ?>
+                                            &nbsp;|&nbsp;<?php echo esc_html($formatted_event_time); ?>
                                         <?php endif; ?>
                                         <?php if (!empty($event['location']['name'] ?? $event['location'] ?? '')) : ?>
                                             &nbsp;|&nbsp;<?php echo esc_html(is_array($event['location'] ?? null) ? ($event['location']['name'] ?? '') : $event['location']); ?>

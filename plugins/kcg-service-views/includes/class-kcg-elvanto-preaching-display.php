@@ -98,14 +98,6 @@ class KCG_Elvanto_Preaching_Display {
                 continue;
             }
 
-            $date = $event['date'] ?? $event['start_date'] ?? null;
-            if ($date && !isset($event['formatted_date'])) {
-                $service_datetime = kcg_elvanto_parse_service_datetime($date);
-                if ($service_datetime) {
-                    $event['formatted_date'] = $service_datetime->format('D jS M');
-                }
-            }
-
             $filtered_services[] = $event;
         }
 
@@ -371,7 +363,11 @@ class KCG_Elvanto_Preaching_Display {
             $html .= '<tr>';
             
             // Date column
-            $date_display = isset($service['formatted_date']) ? $service['formatted_date'] : $service['date'];
+            $date_value = $service['date'] ?? $service['start_date'] ?? '';
+            $service_datetime = kcg_elvanto_parse_service_datetime($date_value);
+            $date_display = $service_datetime
+                ? wp_date(get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
+                : ($service['formatted_date'] ?? $date_value);
             $html .= '<td class="date-cell">' . esc_html($date_display) . '</td>';
             
             // Series column

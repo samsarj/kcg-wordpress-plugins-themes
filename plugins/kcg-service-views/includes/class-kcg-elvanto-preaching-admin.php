@@ -95,7 +95,10 @@ class KCG_Elvanto_Preaching_Admin {
                                 $location_name = is_array($service['location'] ?? null)
                                     ? trim((string) ($service['location']['name'] ?? ''))
                                     : trim((string) ($service['location'] ?? ''));
-                                $formatted_service_date = $service_date !== '' ? wp_date('g:ia | D jS M', kcg_elvanto_parse_service_datetime($service_date)->getTimestamp()) : '';
+                                $service_datetime = $service_date !== '' ? kcg_elvanto_parse_service_datetime($service_date) : null;
+                                $formatted_service_date = $service_datetime
+                                    ? wp_date(get_option('time_format') . ' | ' . get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
+                                    : '';
                                 ?>
                                 <li style="margin-bottom: 12px;">
                                     <strong><?php echo esc_html($service_name !== '' ? $service_name : 'Untitled'); ?></strong>

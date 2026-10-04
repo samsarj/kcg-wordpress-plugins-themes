@@ -219,7 +219,16 @@ class KCG_Elvanto_API_Admin {
                                     <tr>
                                         <td><?php echo esc_html(ucfirst((string) $key)); ?></td>
                                         <td><?php echo esc_html($details['status'] ?? 'unknown'); ?></td>
-                                        <td><?php echo esc_html($details['updated_at'] ?? '—'); ?></td>
+                                        <?php
+                                        $updated_at = trim((string) ($details['updated_at'] ?? ''));
+                                        $updated_datetime = $updated_at !== ''
+                                            ? DateTime::createFromFormat('Y-m-d H:i:s', $updated_at, wp_timezone())
+                                            : false;
+                                        $updated_at_display = $updated_datetime instanceof DateTime
+                                            ? $updated_datetime->format('Y-m-d H:i:s')
+                                            : ($updated_at !== '' ? $updated_at : '—');
+                                        ?>
+                                        <td><?php echo esc_html($updated_at_display); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
