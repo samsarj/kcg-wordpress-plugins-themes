@@ -249,6 +249,8 @@ class KCG_Elvanto_API_Admin {
                 </div>
             </div>
 
+            <?php $this->render_merged_events_table($merged_events); ?>
+
             <form method="post" action="options.php">
                 <?php
                 settings_fields('kcg_elvanto_api_settings_group');
@@ -256,6 +258,127 @@ class KCG_Elvanto_API_Admin {
                 submit_button();
                 ?>
             </form>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render the cached merged_events as a filterable table.
+     */
+    private function render_merged_events_table(array $merged_events) {
+        $date_format = get_option('date_format');
+        $time_format = get_option('time_format');
+        $groups = array();
+        foreach ($merged_events as $item) {
+            $group = $item['source'] === 'service' ? $item['service_type'] : $item['calendar_name'];
+            if ($group !== '') {
+                $groups[$group] = true;
+            }
+        }
+        ksort($groups, SORT_NATURAL | SORT_FLAG_CASE);
+        ?>
+        <style>
+            .kcg-me { max-width: 1400px; }
+            .kcg-me-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+            .kcg-me-toolbar input[type=search] { min-width: 240px; }
+            .kcg-me-wrap { overflow-x: auto; border: 1px solid #dcdcde; border-radius: 6px; }
+            .kcg-me table { border: 0; border-collapse: collapse; width: 100%; }
+            .kcg-me th { position: sticky; top: 32px; background: #f6f7f7; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: #50575e; white-space: nowrap; padding: 10px 12px; }
+            .kcg-me td { padding: 10px 12px; vertical-align: top; border-top: 1px solid #f0f0f1; }
+            .kcg-me tbody tr:hover { background: #f6f9fc; }
+            .kcg-me-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: baseline; border: 1px solid rgba(0,0,0,.15); }
+            .kcg-me-title { font-weight: 600; }
+            .kcg-me-sub, .kcg-me-muted { color: #646970; font-size: 12px; }
+            .kcg-me-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+            .kcg-me-badge.service { background: #e7f5ea; color: #1a6b2c; }
+            .kcg-me-badge.event { background: #e6f0fb; color: #1d5fa8; }
+            .kcg-me-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; display: block; }
+            .kcg-me-empty { padding: 24px; text-align: center; color: #646970; }
+        </style>
+        <div class="postbox kcg-me" style="margin-bottom: 20px;">
+            <h2 class="hndle"><span>Merged events (<span id="kcg-me-count"><?php echo esc_html(count($merged_events)); ?></span> of <?php echo esc_html(count($merged_events)); ?>)</span></h2>
+            <div class="inside">
+                <?php if (empty($merged_events)): ?>
+                    <p class="kcg-me-empty">No merged events yet. Add an API key and refresh the cache.</p>
+                <?php else: ?>
+                    <div class="kcg-me-toolbar">
+                        <input type="search" id="kcg-me-search" placeholder="Search merged events…">
+                        <select id="kcg-me-source">
+                            <option value="">All sources</option>
+                            <option value="service">Services</option>
+                            <option value="event">Events</option>
+                        </select>
+                        <select id="kcg-me-group">
+                            <option value="">All service types / calendars</option>
+                            <?php foreach (array_keys($groups) as $group): ?>
+                                <option value="<?php echo esc_attr(strtolower($group)); ?>"><?php echo esc_html($group); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="kcg-me-wrap">
+                        <table id="kcg-me-table">
+                            <thead>
+                                <tr>
+                                    <th></th><th>When</th><th>Title</th><th>Source</th><th>Service type</th><th>Calendar</th><th>Location</th><th>Links</th><th>ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($merged_events as $item):
+                                    $dt = KCG_Elvanto_Datetime::from_local($item['date'] ?? '', $item['time'] ?? '');
+                                    $day = $dt ? wp_date('D ' . $date_format, $dt->getTimestamp(), $dt->getTimezone()) : (string) ($item['date'] ?? '');
+                                    $time = $dt && !empty($item['time']) ? wp_date($time_format, $dt->getTimestamp(), $dt->getTimezone()) : (empty($item['date']) ? '' : 'All day');
+                                    $group = $item['source'] === 'service' ? $item['service_type'] : $item['calendar_name'];
+                                    $search = strtolower(implode(' ', array($item['title'], $item['subtitle'], $item['service_type'], $item['calendar_name'], $item['location'], $day)));
+                                    ?>
+                                    <tr data-source="<?php echo esc_attr($item['source']); ?>" data-group="<?php echo esc_attr(strtolower($group)); ?>" data-search="<?php echo esc_attr($search); ?>">
+                                        <td><?php if (!empty($item['picture'])): ?><img class="kcg-me-thumb" src="<?php echo esc_url($item['picture']); ?>" alt="" loading="lazy"><?php endif; ?></td>
+                                        <td style="white-space: nowrap;"><strong><?php echo esc_html($day); ?></strong><div class="kcg-me-muted"><?php echo esc_html($time); ?></div></td>
+                                        <td>
+                                            <?php if (!empty($item['color'])): ?><span class="kcg-me-swatch" style="background: <?php echo esc_attr($item['color']); ?>;" title="<?php echo esc_attr($item['color']); ?>"></span><?php endif; ?>
+                                            <span class="kcg-me-title"><?php echo esc_html($item['title'] !== '' ? $item['title'] : 'Untitled'); ?></span>
+                                            <?php if ($item['subtitle'] !== ''): ?><div class="kcg-me-sub"><?php echo esc_html($item['subtitle']); ?></div><?php endif; ?>
+                                        </td>
+                                        <td><span class="kcg-me-badge <?php echo esc_attr($item['source']); ?>"><?php echo esc_html($item['source']); ?></span></td>
+                                        <td><?php echo $item['service_type'] !== '' ? esc_html($item['service_type']) : '<span class="kcg-me-muted">—</span>'; ?></td>
+                                        <td><?php echo $item['calendar_name'] !== '' ? esc_html($item['calendar_name']) : '<span class="kcg-me-muted">—</span>'; ?></td>
+                                        <td><?php echo $item['location'] !== '' ? esc_html($item['location']) : '<span class="kcg-me-muted">—</span>'; ?></td>
+                                        <td style="white-space: nowrap;">
+                                            <?php if (!empty($item['link_info'])): ?><a href="<?php echo esc_url($item['link_info']); ?>" target="_blank" rel="noopener">Info</a><?php endif; ?>
+                                            <?php if (!empty($item['link_register'])): ?> · <a href="<?php echo esc_url($item['link_register']); ?>" target="_blank" rel="noopener">Register</a><?php endif; ?>
+                                            <?php if (empty($item['link_info']) && empty($item['link_register'])): ?><span class="kcg-me-muted">—</span><?php endif; ?>
+                                        </td>
+                                        <td><code style="font-size: 11px;"><?php echo esc_html(substr((string) $item['id'], 0, 8)); ?></code></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <p class="kcg-me-empty" id="kcg-me-none" hidden>No merged events match your filters.</p>
+                    </div>
+                    <script>
+                    (function () {
+                        var search = document.getElementById('kcg-me-search'),
+                            source = document.getElementById('kcg-me-source'),
+                            group = document.getElementById('kcg-me-group'),
+                            rows = document.querySelectorAll('#kcg-me-table tbody tr'),
+                            count = document.getElementById('kcg-me-count'),
+                            none = document.getElementById('kcg-me-none');
+                        function apply() {
+                            var q = search.value.trim().toLowerCase(), shown = 0;
+                            rows.forEach(function (row) {
+                                var ok = (!q || row.dataset.search.indexOf(q) !== -1)
+                                    && (!source.value || row.dataset.source === source.value)
+                                    && (!group.value || row.dataset.group === group.value);
+                                row.hidden = !ok;
+                                if (ok) { shown++; }
+                            });
+                            count.textContent = shown;
+                            none.hidden = shown !== 0;
+                        }
+                        [search, source, group].forEach(function (el) { el.addEventListener('input', apply); });
+                    })();
+                    </script>
+                <?php endif; ?>
+            </div>
         </div>
         <?php
     }
