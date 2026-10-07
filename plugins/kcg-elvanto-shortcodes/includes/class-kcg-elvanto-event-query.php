@@ -9,6 +9,8 @@
  *   service_type  Service type only (e.g. "Sunday Service").
  *   calendar      Calendar name only (e.g. "Youth").
  *   source        "service", "event" or "all" (default depends on the shortcode).
+ *   exclude_service_type  Service types to exclude (comma-separated).
+ *   include_service_name  Service-name phrases allowed through excluded types.
  *   limit         Maximum number of items (0 = no limit).
  */
 
@@ -24,6 +26,7 @@ class KCG_Elvanto_Event_Query {
             'type'         => '',
             'service_type' => '',
             'calendar'     => '',
+            'include_service_name' => '',
             'source'       => $source,
             'limit'        => 10,
         );
@@ -50,16 +53,24 @@ class KCG_Elvanto_Event_Query {
         $type         = self::to_list( $args['type'] ?? '' );
         $service_type = self::to_list( $args['service_type'] ?? '' );
         $calendar     = self::to_list( $args['calendar'] ?? '' );
+        $exclude_service_type = self::to_list( $args['exclude_service_type'] ?? '' );
+        $include_service_name = self::to_list( $args['include_service_name'] ?? '' );
         $source       = strtolower( trim( (string) ( $args['source'] ?? 'all' ) ) );
 
         $items = array_filter(
             KCG_Elvanto_Cache::get_merged_events(),
-            function ( $item ) use ( $type, $service_type, $calendar, $source ) {
+            function ( $item ) use ( $type, $service_type, $calendar, $exclude_service_type, $include_service_name, $source ) {
                 if ( ! is_array( $item ) ) {
                     return false;
                 }
                 if ( in_array( $source, array( 'service', 'event' ), true ) && ( $item['source'] ?? '' ) !== $source ) {
                     return false;
+                }
+                if ( $exclude_service_type && self::matches( $exclude_service_type, array( $item['service_type'] ?? '' ) ) ) {
+                    $service_name = strtolower( trim( (string) ( $item['title'] ?? '' ) ) );
+                    if ( 'service' !== ( $item['source'] ?? '' ) || ! self::contains_any( $service_name, $include_service_name ) ) {
+                        return false;
+                    }
                 }
                 if ( $type && ! self::matches( $type, array( $item['service_type'] ?? '', $item['calendar_name'] ?? '' ) ) ) {
                     return false;
@@ -116,6 +127,16 @@ class KCG_Elvanto_Event_Query {
                 return true;
             }
         }
+        return false;
+    }
+
+    private static function contains_any( $value, array $phrases ) {
+        foreach ( $phrases as $phrase ) {
+            if ( '' !== $phrase && false !== strpos( $value, $phrase ) ) {
+                return true;
+            }
+        }
+
         return false;
     }
 }

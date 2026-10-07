@@ -69,6 +69,18 @@ class KCG_Elvanto_Shortcodes_Admin {
         return $values;
     }
 
+    private function render_shortcode_argument_table($arguments) {
+        echo '<table class="widefat striped"><thead><tr><th>Argument</th><th>What it does</th></tr></thead><tbody>';
+        foreach ($arguments as $argument => $description) {
+            printf(
+                '<tr><td><code>%1$s</code></td><td>%2$s</td></tr>',
+                esc_html($argument),
+                esc_html($description)
+            );
+        }
+        echo '</tbody></table>';
+    }
+
     private function render_service_links($service_types) {
         $saved = (array) get_option(KCG_Elvanto_Event_Merger::SERVICE_LINKS_OPTION, array());
         $orphans = array_diff(array_keys($saved), $service_types);
@@ -106,22 +118,82 @@ class KCG_Elvanto_Shortcodes_Admin {
             <div class="postbox" style="max-width: 900px;">
                 <h2 class="hndle"><span>Shortcodes</span></h2>
                 <div class="inside">
-                    <p>All shortcodes accept the same filters. Services have <strong>service types</strong>; events have <strong>calendars</strong>. Use comma-separated lists for several values; matching is case-insensitive.</p>
-                    <table class="widefat striped">
-                        <thead><tr><th>Attribute</th><th>Meaning</th></tr></thead>
-                        <tbody>
-                            <tr><td><code>type</code></td><td>A service type <em>or</em> a calendar name</td></tr>
-                            <tr><td><code>service_type</code></td><td>Service type only</td></tr>
-                            <tr><td><code>calendar</code></td><td>Calendar name only</td></tr>
-                            <tr><td><code>source</code></td><td><code>service</code>, <code>event</code> or <code>all</code></td></tr>
-                            <tr><td><code>limit</code></td><td>Maximum items (0 = all)</td></tr>
-                        </tbody>
-                    </table>
-                    <ul style="list-style: disc; padding-left: 20px;">
-                        <li><code>[next-on type="Sunday Service"]</code>, <code>[next-on calendar="Youth" align="center"]</code> (default type: Sunday Service)</li>
-                        <li><code>[elvanto_swiper limit="6" calendar="Youth,Kids"]</code> (default: all services and events)</li>
-                        <li><code>[kcg_preaching_table service_type="Sunday Service" limit="12"]</code> (default source: service)</li>
-                    </ul>
+                    <p>Service types and calendars can be selected by exact name. Filter values support comma-separated lists and match case-insensitively. Each shortcode below lists only the arguments that shortcode accepts.</p>
+
+                    <h3><code>[next-on]</code> — next matching service or event as text</h3>
+                    <?php
+                    $this->render_shortcode_argument_table(array(
+                        'type' => 'Match a service type or calendar name. Multiple comma-separated exact names are allowed.',
+                        'service_type' => 'Match service types only.',
+                        'calendar' => 'Match calendar names only.',
+                        'source' => 'service, event, or all. Defaults to all.',
+                        'limit' => 'Accepted for shared-filter consistency, but this shortcode always selects one next match.',
+                        'include_service_name' => 'Allow a service whose title contains a comma-separated phrase through excluded types. This is only useful with exclude_service_type, which [next-on] does not accept.',
+                        'align' => 'Text alignment: left, center, right, or justify. Default: theme alignment.',
+                        'show_preacher' => 'Show the mapped preacher name when present: yes or no. Default: no.',
+                    ));
+                    ?>
+                    <p>No type/service_type/calendar filter defaults to <code>Sunday Service</code>. This shortcode always displays just the next match.</p>
+                    <p><code>[next-on type="Sunday Service" show_preacher="yes"]</code><br>
+                    <code>[next-on calendar="Youth" align="center"]</code></p>
+
+                    <h3><code>[next-on-card]</code> — event card; email can show a list</h3>
+                    <?php
+                    $this->render_shortcode_argument_table(array(
+                        'type' => 'Match a service type or calendar name. Multiple comma-separated exact names are allowed.',
+                        'service_type' => 'Match service types only.',
+                        'calendar' => 'Match calendar names only.',
+                        'source' => 'service, event, or all. Defaults to all.',
+                        'limit' => 'Accepted for shared-filter consistency, but overridden: website output selects one card; email count is controlled by amount/range.',
+                        'exclude_service_type' => 'Hide services of the listed service types. Comma-separated.',
+                        'include_service_name' => 'Exception to exclude_service_type: allow excluded-type services whose title contains a listed phrase, e.g. Christmas. Comma-separated.',
+                        'show_preacher' => 'Show the mapped preacher name when present: yes or no. Default: no.',
+                        'align' => 'Card alignment: left, center, or right. Email defaults to center.',
+                        'width' => 'Maximum card width. Accepts a CSS length (px, rem, em, %, vw, ch) or auto, fit-content, max-content. Email applies px/rem values; otherwise it uses 30rem.',
+                        'amount' => 'Email only: positive maximum number of cards. Without range, defaults to one card.',
+                        'range' => 'Email only: future end range, such as 14 days, 6 weeks, or 3 months. With a range and no amount, show all matches in the range.',
+                        'from' => 'Email only: optional start boundary, next-week (next Monday) or a positive offset such as 7 days. Combine with range to select a window.',
+                        'layout' => 'Email only: compact places the image beside smaller event details and buttons. Other values use the full card layout.',
+                    ));
+                    ?>
+                    <p>Website output remains a single compact card; amount, range, from, and layout affect email output only. Defaults to the next matching service or event.</p>
+                    <p><code>[next-on-card]</code><br>
+                    <code>[next-on-card amount="4" range="6 weeks" from="next-week" layout="compact" exclude_service_type="Sunday Gathering,Equip" include_service_name="Christmas"]</code></p>
+
+                    <h3><code>[next-on-card-swiper]</code> — carousel on the website, stacked cards in email</h3>
+                    <?php
+                    $this->render_shortcode_argument_table(array(
+                        'type' => 'Match a service type or calendar name. Multiple comma-separated exact names are allowed.',
+                        'service_type' => 'Match service types only.',
+                        'calendar' => 'Match calendar names only.',
+                        'source' => 'service, event, or all. Defaults to all.',
+                        'limit' => 'Maximum number of items. Defaults to 10; use 0 for no limit.',
+                        'exclude_service_type' => 'Hide services of the listed service types. Comma-separated.',
+                        'include_service_name' => 'Exception to exclude_service_type: allow excluded-type services whose title contains a listed phrase, e.g. Christmas. Comma-separated.',
+                        'show_date' => 'Show event date: yes or no. Default: yes.',
+                        'show_time' => 'Show event time: yes or no. Default: yes.',
+                        'show_description' => 'Show event description: yes or no. Default: yes.',
+                    ));
+                    ?>
+                    <p><code>[next-on-card-swiper limit="6" calendar="Youth,Kids"]</code><br>
+                    <code>[next-on-card-swiper exclude_service_type="Sunday Gathering" include_service_name="Christmas"]</code></p>
+
+                    <h3><code>[kcg_preaching_table]</code> — upcoming services and speakers</h3>
+                    <?php
+                    $this->render_shortcode_argument_table(array(
+                        'type' => 'Match a service type or calendar name. Multiple comma-separated exact names are allowed.',
+                        'service_type' => 'Match service types only.',
+                        'calendar' => 'Match calendar names only.',
+                        'source' => 'service, event, or all. Defaults to service.',
+                        'limit' => 'Maximum number of rows. Defaults to 10; use 0 for no limit.',
+                        'include_service_name' => 'Shared query option; only useful with exclude_service_type, which this shortcode does not accept.',
+                        'show_time' => 'Accepted for legacy compatibility; does not currently change the table output.',
+                        'show_location' => 'Accepted for legacy compatibility; does not currently change the table output.',
+                        'show_description' => 'Accepted for legacy compatibility; does not currently change the table output.',
+                        'class' => 'CSS class for the table. Default: kcg-preaching-table.',
+                    ));
+                    ?>
+                    <p><code>[kcg_preaching_table service_type="Sunday Service" limit="12"]</code></p>
                     <p><strong>Service types:</strong> <?php echo esc_html($service_types ? implode(', ', $service_types) : 'none loaded'); ?><br>
                     <strong>Calendars:</strong> <?php echo esc_html($calendars ? implode(', ', $calendars) : 'none loaded'); ?></p>
                 </div>

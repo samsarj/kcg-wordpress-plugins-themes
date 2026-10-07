@@ -325,9 +325,25 @@ class KCG_Elvanto_Cache {
         if ( false === $merged ) {
             self::refresh_merged_events();
             $merged = get_transient( self::MERGED_EVENTS_TRANSIENT );
+        } elseif ( is_array( $merged ) && ! self::merged_events_have_preacher_mapping( $merged ) ) {
+            self::refresh_merged_events();
+            $merged = get_transient( self::MERGED_EVENTS_TRANSIENT );
         }
 
         return self::$request_cache[ self::MERGED_EVENTS_TRANSIENT ] = is_array( $merged ) ? $merged : array();
+    }
+
+    /**
+     * Check cached merged data for the normalized preacher field added to service mappings.
+     */
+    private static function merged_events_have_preacher_mapping( array $merged ) {
+        foreach ( $merged as $item ) {
+            if ( is_array( $item ) && 'service' === ( $item['source'] ?? '' ) && ! array_key_exists( 'preacher', $item ) ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

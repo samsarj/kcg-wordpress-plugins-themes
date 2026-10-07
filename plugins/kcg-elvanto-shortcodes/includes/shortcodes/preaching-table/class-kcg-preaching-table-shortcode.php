@@ -107,7 +107,6 @@ class KCG_Elvanto_Preaching_Table_Shortcode {
 
         $candidates = array(
             $service['subtitle'] ?? null,
-            $service['service_type'] ?? null,
             $service['title'] ?? null,
         );
 
@@ -157,6 +156,10 @@ class KCG_Elvanto_Preaching_Table_Shortcode {
     private function get_service_preacher_name($service) {
         if (!is_array($service)) {
             return 'TBD';
+        }
+
+        if (isset($service['preacher']) && is_string($service['preacher'])) {
+            return '' !== trim($service['preacher']) ? trim($service['preacher']) : 'TBD';
         }
 
         $candidates = array($service['volunteers'] ?? null);

@@ -18,7 +18,9 @@ define('KCG_ELVANTO_SHORTCODES_VERSION', '2.0.0');
 define('KCG_ELVANTO_SHORTCODES_PATH', plugin_dir_path(__FILE__));
 
 require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/class-kcg-elvanto-event-query.php';
+require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/shared/class-kcg-elvanto-email-context.php';
 require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/shared/class-kcg-elvanto-event-card.php';
+KCG_Elvanto_Email_Context::init();
 require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/event-swiper/class-kcg-event-swiper-shortcode.php';
 require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/next-on/class-kcg-next-on-shortcode.php';
 require_once KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/next-on/class-kcg-next-on-card-shortcode.php';

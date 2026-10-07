@@ -18,9 +18,10 @@
  *   link_info      string  configured service-type link | event.url
  *   link_register  string  (none)                  | event.register_url
  *   service_type   string  service.service_type.name | '' for events
+ *   preacher       string  name of the volunteer in the preaching/leading position, or 'TBD'
  *   calendar_id    string  event.calendar_id, or that of an event sharing the service's id
  *   calendar_name  string  name of the calendar identified by calendar_id
- *   volunteers     array   service.volunteers (used to find the preacher)
+ *   volunteers     array   raw service.volunteers payload
  *
  * An event whose id equals a service id is the calendar entry for that service: it is dropped
  * in favour of the service and only lends it a colour and a calendar.
@@ -105,12 +106,104 @@ class KCG_Elvanto_Event_Merger {
             'color'         => ! empty( $twin_event['color'] ) ? $twin_event['color'] : self::DEFAULT_SERVICE_COLOR,
             'link_info'     => self::service_link( $service, $service_type, $service_links ),
             'service_type'  => $service_type,
+            'preacher'      => self::service_preacher( $service ),
             'calendar_id'   => (string) ( $twin_event['calendar_id'] ?? '' ),
             'calendar_name' => (string) ( $calendar['name'] ?? '' ),
             'volunteers'    => $service['volunteers'] ?? array(),
         );
 
         return array_merge( $item, self::split_date( $service['date'] ?? '' ) );
+    }
+
+    /**
+     * Resolve the service preacher from the volunteer position payload.
+     */
+    private static function service_preacher( array $service ) {
+        foreach ( array( 'preacher', 'speaker' ) as $key ) {
+            $name = self::person_name( $service[ $key ] ?? null );
+            if ( '' !== $name ) {
+                return $name;
+            }
+        }
+
+        $volunteers = $service['volunteers'] ?? array();
+        $plans = isset( $volunteers['plan'] ) ? $volunteers['plan'] : array();
+        $plans = is_array( $plans ) ? $plans : array( $plans );
+        if ( isset( $volunteers['plan']['positions'] ) ) {
+            $plans = array( $volunteers['plan'] );
+        }
+
+        foreach ( $plans as $plan ) {
+            if ( ! is_array( $plan ) || ! isset( $plan['positions']['position'] ) ) {
+                continue;
+            }
+
+            $positions = $plan['positions']['position'];
+            $positions = is_array( $positions ) ? $positions : array( $positions );
+            if ( isset( $positions['position_name'] ) ) {
+                $positions = array( $positions );
+            }
+
+            foreach ( $positions as $position ) {
+                if ( ! is_array( $position ) ) {
+                    continue;
+                }
+
+                $position_name = (string) ( $position['position_name'] ?? '' );
+                if (
+                    false === stripos( $position_name, 'preach' )
+                    && false === stripos( $position_name, 'leading' )
+                ) {
+                    continue;
+                }
+
+                $position_volunteers = $position['volunteers']['volunteer'] ?? array();
+                $position_volunteers = is_array( $position_volunteers )
+                    ? $position_volunteers
+                    : array( $position_volunteers );
+                if ( isset( $position_volunteers['person'] ) ) {
+                    $position_volunteers = array( $position_volunteers );
+                }
+
+                foreach ( $position_volunteers as $volunteer ) {
+                    $name = self::person_name( is_array( $volunteer ) ? ( $volunteer['person'] ?? null ) : null );
+                    if ( '' !== $name ) {
+                        return $name;
+                    }
+                }
+            }
+        }
+
+        return 'TBD';
+    }
+
+    /**
+     * Extract a display name from the person structures returned by Elvanto.
+     */
+    private static function person_name( $person ) {
+        if ( is_string( $person ) ) {
+            return trim( $person );
+        }
+        if ( ! is_array( $person ) ) {
+            return '';
+        }
+
+        $first = trim( (string) ( $person['firstname'] ?? '' ) );
+        $last  = trim( (string) ( $person['lastname'] ?? '' ) );
+        if ( '' !== $first || '' !== $last ) {
+            return trim( $first . ' ' . $last );
+        }
+
+        foreach ( array( 'name', 'display_name', 'preferred_name', 'full_name' ) as $key ) {
+            if ( isset( $person[ $key ] ) && is_scalar( $person[ $key ] ) ) {
+                $name = trim( (string) $person[ $key ] );
+                if ( '' !== $name ) {
+                    return $name;
+                }
+            }
+        }
+
+        return '';
     }
 
     private static function map_event( array $event, array $calendars_by_id ) {
@@ -128,6 +221,7 @@ class KCG_Elvanto_Event_Merger {
             'link_info'     => (string) ( $event['url'] ?? '' ),
             'link_register' => (string) ( $event['register_url'] ?? '' ),
             'service_type'  => '',
+            'preacher'      => '',
             'calendar_id'   => (string) ( $event['calendar_id'] ?? '' ),
             'calendar_name' => (string) ( $calendar['name'] ?? '' ),
         );
