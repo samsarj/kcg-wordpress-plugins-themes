@@ -119,6 +119,7 @@ class KCG_Elvanto_Shortcodes_Admin {
                 <h2 class="hndle"><span>Shortcodes</span></h2>
                 <div class="inside">
                     <p>Service types and calendars can be selected by exact name. Filter values support comma-separated lists and match case-insensitively. Each shortcode below lists only the arguments that shortcode accepts.</p>
+                    <p>Email rendering uses email-safe markup in recognized editor contexts. Newsletter send workers should use the <code>kcg_elvanto_is_email</code> filter to enable it only while rendering the email.</p>
 
                     <h3><code>[next-on]</code> — next matching service or event as text</h3>
                     <?php
@@ -128,7 +129,6 @@ class KCG_Elvanto_Shortcodes_Admin {
                         'calendar' => 'Match calendar names only.',
                         'source' => 'service, event, or all. Defaults to all.',
                         'limit' => 'Accepted for shared-filter consistency, but this shortcode always selects one next match.',
-                        'include_service_name' => 'Allow a service whose title contains a comma-separated phrase through excluded types. This is only useful with exclude_service_type, which [next-on] does not accept.',
                         'align' => 'Text alignment: left, center, right, or justify. Default: theme alignment.',
                         'show_preacher' => 'Show the mapped preacher name when present: yes or no. Default: no.',
                     ));
@@ -147,17 +147,18 @@ class KCG_Elvanto_Shortcodes_Admin {
                         'limit' => 'Accepted for shared-filter consistency, but overridden: website output selects one card; email count is controlled by amount/range.',
                         'exclude_service_type' => 'Hide services of the listed service types. Comma-separated.',
                         'include_service_name' => 'Exception to exclude_service_type: allow excluded-type services whose title contains a listed phrase, e.g. Christmas. Comma-separated.',
-                        'show_preacher' => 'Show the mapped preacher name when present: yes or no. Default: no.',
+                        'show_preacher' => 'Optionally show the mapped preacher name when present: true or false. Default: false.',
+                        'show_description' => 'Show the event description: true or false. Default: true.',
                         'align' => 'Card alignment: left, center, or right. Email defaults to center.',
-                        'width' => 'Maximum card width. Accepts a CSS length (px, rem, em, %, vw, ch) or auto, fit-content, max-content. Email applies px/rem values; otherwise it uses 30rem.',
                         'amount' => 'Email only: positive maximum number of cards. Without range, defaults to one card.',
                         'range' => 'Email only: future end range, such as 14 days, 6 weeks, or 3 months. With a range and no amount, show all matches in the range.',
                         'from' => 'Email only: optional start boundary, next-week (next Monday) or a positive offset such as 7 days. Combine with range to select a window.',
                         'layout' => 'Email only: compact places the image beside smaller event details and buttons. Other values use the full card layout.',
                     ));
                     ?>
-                    <p>Website output remains a single compact card; amount, range, from, and layout affect email output only. Defaults to the next matching service or event.</p>
+                    <p>Website output remains a single compact card. Email cards fill their containing width; constrain them with the newsletter editor's group/layout controls. Amount, range, from, and layout affect email output only. Defaults to the next matching service or event.</p>
                     <p><code>[next-on-card]</code><br>
+                    <code>[next-on-card show_description="false" show_preacher="false"]</code><br>
                     <code>[next-on-card amount="4" range="6 weeks" from="next-week" layout="compact" exclude_service_type="Sunday Gathering,Equip" include_service_name="Christmas"]</code></p>
 
                     <h3><code>[next-on-card-swiper]</code> — carousel on the website, stacked cards in email</h3>
@@ -186,10 +187,6 @@ class KCG_Elvanto_Shortcodes_Admin {
                         'calendar' => 'Match calendar names only.',
                         'source' => 'service, event, or all. Defaults to service.',
                         'limit' => 'Maximum number of rows. Defaults to 10; use 0 for no limit.',
-                        'include_service_name' => 'Shared query option; only useful with exclude_service_type, which this shortcode does not accept.',
-                        'show_time' => 'Accepted for legacy compatibility; does not currently change the table output.',
-                        'show_location' => 'Accepted for legacy compatibility; does not currently change the table output.',
-                        'show_description' => 'Accepted for legacy compatibility; does not currently change the table output.',
                         'class' => 'CSS class for the table. Default: kcg-preaching-table.',
                     ));
                     ?>

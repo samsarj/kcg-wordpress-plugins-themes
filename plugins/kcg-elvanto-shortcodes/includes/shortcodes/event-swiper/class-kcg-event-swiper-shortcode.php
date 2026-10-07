@@ -22,47 +22,6 @@ class KCG_Elvanto_Event_Swiper_Shortcode
     public function register()
     {
         add_shortcode('next-on-card-swiper', array($this, 'shortcode_callback'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_assets'));
-    }
-
-    /**
-     * Enqueue frontend CSS and JS
-     */
-    public function enqueue_frontend_assets()
-    {
-        // Enqueue Swiper CSS
-        wp_enqueue_style(
-            'swiper-css',
-            'https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css'
-        );
-
-        KCG_Elvanto_Event_Card::enqueue_assets();
-
-        // Enqueue our custom CSS
-        wp_enqueue_style(
-            'elvanto-swiper-css',
-            plugin_dir_url(__FILE__) . 'elvanto-swiper.css',
-            array(),
-            filemtime(__DIR__ . '/elvanto-swiper.css')
-        );
-
-        // Enqueue Swiper JS
-        wp_enqueue_script(
-            'swiper-js',
-            'https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js',
-            array(),
-            null,
-            true
-        );
-
-        // Enqueue our custom JS
-        wp_enqueue_script(
-            'elvanto-swiper-js',
-            plugin_dir_url(__FILE__) . 'elvanto-swiper.js',
-            array('swiper-js'),
-            filemtime(__DIR__ . '/elvanto-swiper.js'),
-            true
-        );
     }
 
     /**
@@ -75,6 +34,7 @@ class KCG_Elvanto_Event_Swiper_Shortcode
                 KCG_Elvanto_Event_Query::filter_defaults('all'),
                 array(
                     'exclude_service_type' => '',
+                    'include_service_name' => '',
                     'show_date' => true,
                     'show_time' => true,
                     'show_description' => true,
@@ -104,7 +64,7 @@ class KCG_Elvanto_Event_Swiper_Shortcode
         // Start building the HTML
         ob_start();
 ?>
-        <div class="swiper-container elvanto-swiper">
+        <div class="swiper elvanto-swiper">
             <div class="swiper-wrapper">
                 <?php foreach ($events as $event): ?>
                     <div class="swiper-slide">

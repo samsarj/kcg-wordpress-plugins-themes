@@ -1,19 +1,17 @@
 <?php
 /**
- * [next-on-card] shortcode: the next upcoming service or event as a compact event card
- * (a compact event card without the description and buttons).
+ * [next-on-card] shortcode: the next upcoming service or event as a compact event card.
  *
  * Examples:
  *   [next-on-card]                              next service or event
  *   [next-on-card type="Sunday Service"]        service type
  *   [next-on-card service_type="Prayer Night"]  service type only
- *   [next-on-card calendar="Youth" align="center" width="20rem"]
- *   [next-on-card show_preacher="yes"]           include the preacher
+ *   [next-on-card calendar="Youth" align="center"]
+ *   [next-on-card show_preacher="true"]           optionally include the preacher (default: false)
+ *   [next-on-card show_description="true"]        include the event description
  *   [next-on-card amount="4"]                    show up to four cards in email
  *   [next-on-card range="6 weeks"]               show cards within the next six weeks in email
  *   [next-on-card from="next-week" range="2 months" layout="compact"]
- *
- * width accepts a CSS length (px, rem, em, %, vw, ch) or auto / fit-content / max-content.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -24,11 +22,6 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
 
     public function register() {
         add_shortcode( 'next-on-card', array( $this, 'render' ) );
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-    }
-
-    public function enqueue_assets() {
-        KCG_Elvanto_Event_Card::enqueue_assets();
     }
 
     public function render( $atts = array() ) {
@@ -37,31 +30,40 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
                 KCG_Elvanto_Event_Query::filter_defaults( 'all' ),
                 array(
                     'align' => '',
-                    'width' => '',
-                    'show_preacher' => 'no',
+                    'show_preacher' => 'false',
+                    'show_description' => 'true',
                     'amount' => '',
                     'range' => '',
                     'from' => '',
                     'layout' => '',
                     'exclude_service_type' => '',
+                    'include_service_name' => '',
                 )
             ),
             $atts,
             'next-on-card'
         );
 
+        foreach ( array( 'show_description', 'show_preacher' ) as $boolean_attribute ) {
+            $value = $this->parse_boolean_attribute( $atts[ $boolean_attribute ] );
+            if ( null === $value ) {
+                return '<p class="kcg-email-shortcode-error">' . esc_html(
+                    sprintf(
+                        /* translators: %s is a shortcode attribute name. */
+                        __( 'The %s attribute must be true or false.', 'kcg-elvanto-shortcodes' ),
+                        $boolean_attribute
+                    )
+                ) . '</p>';
+            }
+            $atts[ $boolean_attribute ] = $value;
+        }
+
         $align = strtolower( trim( (string) $atts['align'] ) );
         $flex  = array( 'left' => 'flex-start', 'center' => 'center', 'right' => 'flex-end' );
         $style = isset( $flex[ $align ] ) ? ' style="display:flex;justify-content:' . $flex[ $align ] . ';"' : '';
 
-        $width = trim( (string) $atts['width'] );
-        if ( preg_match( '/^(\d+(\.\d+)?(px|rem|em|%|vw|ch)|auto|fit-content|max-content)$/i', $width ) ) {
-            $style = '' === $style ? ' style="' : rtrim( $style, '"' ) . ';';
-            $style .= '--kcg-next-on-width:' . $width . ';"';
-        }
-
         if ( KCG_Elvanto_Email_Context::is_email() ) {
-            return $this->render_email_cards( $atts, $width, $align );
+            return $this->render_email_cards( $atts, $align );
         }
 
         $item = KCG_Elvanto_Event_Query::next( $atts );
@@ -72,9 +74,9 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
         $card = KCG_Elvanto_Event_Card::render(
             $item,
             array(
-                'show_description' => false,
+                'show_description' => $atts['show_description'],
                 'show_buttons'     => false,
-                'show_preacher'    => filter_var( $atts['show_preacher'], FILTER_VALIDATE_BOOLEAN ),
+                'show_preacher'    => $atts['show_preacher'],
                 'card_class'       => 'event-card--compact',
             )
         );
@@ -82,10 +84,30 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
         return '<div class="kcg-next-on-card"' . $style . '>' . $card . '</div>';
     }
 
+    private function parse_boolean_attribute( $value ) {
+        if ( is_bool( $value ) ) {
+            return $value;
+        }
+
+        if ( ! is_string( $value ) ) {
+            return null;
+        }
+
+        $value = strtolower( trim( $value ) );
+        if ( 'true' === $value ) {
+            return true;
+        }
+        if ( 'false' === $value ) {
+            return false;
+        }
+
+        return null;
+    }
+
     /**
      * Render a stack of email cards using optional amount and date-range constraints.
      */
-    private function render_email_cards( $atts, $width, $align ) {
+    private function render_email_cards( $atts, $align ) {
         $amount_raw = trim( (string) $atts['amount'] );
         $amount = null;
         if ( '' !== $amount_raw ) {
@@ -153,23 +175,17 @@ class KCG_Elvanto_Next_On_Card_Shortcode {
             return '<p>' . esc_html( KCG_Elvanto_Event_Query::no_results_message( $atts ) ) . '</p>';
         }
 
-        $max_width = '30rem';
-        if ( preg_match( '/^(\d+(?:\.\d+)?)(px|rem)$/i', $width, $matches ) ) {
-            $max_width = 'px' === strtolower( $matches[2] )
-                ? ( (float) $matches[1] / 16 ) . 'rem'
-                : $matches[1] . 'rem';
-        }
         $table_align = in_array( $align, array( 'left', 'center', 'right' ), true ) ? $align : 'center';
 
-        $output = '<table role="presentation" align="' . esc_attr( $table_align ) . '" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:' . esc_attr( $max_width ) . ';margin:0 auto;">';
+        $output = '<table role="presentation" align="' . esc_attr( $table_align ) . '" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0;">';
         $last_index = count( $items ) - 1;
         foreach ( $items as $index => $item ) {
             $card = KCG_Elvanto_Event_Card::render(
                 $item,
                 array(
-                    'show_description' => false,
+                    'show_description' => $atts['show_description'],
                     'show_buttons'     => true,
-                    'show_preacher'    => filter_var( $atts['show_preacher'], FILTER_VALIDATE_BOOLEAN ),
+                    'show_preacher'    => $atts['show_preacher'],
                     'layout'           => 'compact' === strtolower( trim( (string) $atts['layout'] ) ) ? 'compact' : 'full',
                 )
             );

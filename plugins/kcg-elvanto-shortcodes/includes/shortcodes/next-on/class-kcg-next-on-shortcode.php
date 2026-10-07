@@ -19,12 +19,6 @@ class KCG_Elvanto_Next_On_Shortcode {
 
     public function register() {
         add_shortcode( 'next-on', array( $this, 'render' ) );
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-    }
-
-    public function enqueue_assets() {
-        $path = __DIR__ . '/next-on.css';
-        wp_enqueue_style( 'kcg-next-on', plugin_dir_url( __FILE__ ) . 'next-on.css', array(), filemtime( $path ) );
     }
 
     public function render( $atts = array() ) {

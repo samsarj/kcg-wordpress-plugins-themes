@@ -96,16 +96,11 @@
     width: 100%;
 }
 
-/* Compact variant used by [next-on-card]: fits its content up to a maximum width, then wraps.
-   Override with the shortcode's width="" attribute (a fixed width), or in theme CSS, e.g.
-   .kcg-next-on-card { --kcg-next-on-width: 20rem; --kcg-next-on-max-width: 24rem; } */
+/* Compact variant used by [next-on-card]. */
 .event-card--compact {
-    /* height: auto !important; */
     margin: 0 auto;
-    width: var(--kcg-next-on-width, fit-content);
+    width: fit-content;
     max-width: min(100%, var(--kcg-next-on-max-width, 28rem));
-    /* box-sizing: border-box; */
-    /* text-align: left; */
 }
 
 .event-card--compact .event-header {

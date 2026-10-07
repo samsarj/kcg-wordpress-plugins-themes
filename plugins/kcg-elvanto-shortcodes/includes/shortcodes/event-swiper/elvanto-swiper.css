@@ -1,19 +1,17 @@
-:root {
+.elvanto-swiper {
     --start-padding: max(var(--wp--preset--spacing--60), calc((100vw - var(--wp--style--global--wide-size)) / 2));
-}
 
-.swiper-container {
     overflow: hidden;
     mask-image: linear-gradient(to right, transparent 0%, black var(--start-padding), black 80%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, transparent 0%, black var(--start-padding), black 80%, transparent 100%);
 }
 
-.swiper-wrapper {
+.elvanto-swiper .swiper-wrapper {
     padding: var(--wp--preset--spacing--40) 0 var(--wp--preset--spacing--40) var(--start-padding);
     align-items: stretch;
 }
 
-.swiper-slide {
+.elvanto-swiper .swiper-slide {
     display: flex;
     align-items: center;
     justify-content: center;

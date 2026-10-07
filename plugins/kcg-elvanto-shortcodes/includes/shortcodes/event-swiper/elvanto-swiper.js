@@ -1,43 +1,53 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var swiper = new Swiper(".swiper-container", {
-    slidesPerView: "auto",
-    spaceBetween: 20,
-    grabCursor: true,
-    mousewheel: {
-      enabled: true,
-      forceToAxis: true,
-    },
-    keyboard: {
-      enabled: true,
-      onlyInViewport: true,
-    },
-    // Use slide effect instead of cards for better button interaction
-    effect: "slide",
-    centeredSlides: false,
+  if (typeof Swiper !== "function") {
+    return;
+  }
+
+  const swipers = Array.from(document.querySelectorAll(".elvanto-swiper")).map(function (container) {
+    const swiper = new Swiper(container, {
+      slidesPerView: "auto",
+      spaceBetween: 20,
+      grabCursor: true,
+      mousewheel: {
+        enabled: true,
+        forceToAxis: true,
+      },
+      keyboard: {
+        enabled: true,
+        onlyInViewport: true,
+      },
+      effect: "slide",
+      centeredSlides: false,
+    });
+
+    return { container: container, swiper: swiper };
   });
 
-  // Equalize card heights
-  function equalizeCardHeights() {
-    const cards = document.querySelectorAll(".elvanto-swiper .event-card");
+  function equalizeCardHeights(container) {
+    const cards = container.querySelectorAll(".swiper-slide .event-card");
     let maxHeight = 0;
 
-    // Reset heights first to get natural heights
-    cards.forEach(card => {
+    cards.forEach(function (card) {
       card.style.height = "auto";
     });
 
-    // Find the tallest card
-    cards.forEach(card => {
+    cards.forEach(function (card) {
       maxHeight = Math.max(maxHeight, card.offsetHeight);
     });
 
-    // Set all cards to the max height
-    cards.forEach(card => {
-      card.style.height = maxHeight + "px";
+    cards.forEach(function (card) {
+      card.style.height = maxHeight ? maxHeight + "px" : "auto";
     });
   }
 
-  // Run on load and on window resize
-  equalizeCardHeights();
-  window.addEventListener("resize", equalizeCardHeights);
+  function refreshSwipers() {
+    swipers.forEach(function (item) {
+      equalizeCardHeights(item.container);
+      item.swiper.update();
+    });
+  }
+
+  refreshSwipers();
+  window.addEventListener("load", refreshSwipers, { once: true });
+  window.addEventListener("resize", refreshSwipers);
 });

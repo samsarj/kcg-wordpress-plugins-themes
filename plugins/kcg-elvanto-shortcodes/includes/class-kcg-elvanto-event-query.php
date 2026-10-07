@@ -10,7 +10,6 @@
  *   calendar      Calendar name only (e.g. "Youth").
  *   source        "service", "event" or "all" (default depends on the shortcode).
  *   exclude_service_type  Service types to exclude (comma-separated).
- *   include_service_name  Service-name phrases allowed through excluded types.
  *   limit         Maximum number of items (0 = no limit).
  */
 
@@ -26,7 +25,6 @@ class KCG_Elvanto_Event_Query {
             'type'         => '',
             'service_type' => '',
             'calendar'     => '',
-            'include_service_name' => '',
             'source'       => $source,
             'limit'        => 10,
         );

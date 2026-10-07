@@ -22,6 +22,17 @@
     padding: 8px;
     font-weight: 600;
     text-align: left;
+    cursor: pointer;
+}
+
+.kcg-preaching-table thead th.sort-asc::after {
+    content: ' ↑';
+    font-size: 0.8em;
+}
+
+.kcg-preaching-table thead th.sort-desc::after {
+    content: ' ↓';
+    font-size: 0.8em;
 }
 
 .kcg-preaching-table thead th h5 {
@@ -35,5 +46,5 @@
 }
 
 .kcg-preaching-table tbody tr.even-row {
-    background-color: var(--wp--preset--color--base);
+    background-color: #fafafa;
 }

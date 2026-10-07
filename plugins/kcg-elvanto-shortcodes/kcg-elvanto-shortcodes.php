@@ -32,6 +32,7 @@ class KCG_Elvanto_Shortcodes {
     public function __construct() {
         // After the provider (priority 10) so its classes exist.
         add_action('plugins_loaded', array($this, 'init'), 20);
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_shortcode_assets'));
     }
 
     public static function activate() {
@@ -54,6 +55,92 @@ class KCG_Elvanto_Shortcodes {
 
         if (is_admin()) {
             new KCG_Elvanto_Shortcodes_Admin();
+        }
+    }
+
+    public function enqueue_shortcode_assets() {
+        global $wp_query;
+
+        $content = array();
+        if (isset($wp_query->posts) && is_array($wp_query->posts)) {
+            $content = $wp_query->posts;
+        }
+        $queried_object = get_queried_object();
+        if ($queried_object instanceof WP_Post) {
+            $content[] = $queried_object;
+        }
+
+        $shortcodes = array();
+        foreach ($content as $post) {
+            if (!($post instanceof WP_Post)) {
+                continue;
+            }
+            foreach (array('next-on', 'next-on-card', 'next-on-card-swiper', 'kcg_preaching_table') as $shortcode) {
+                if (has_shortcode($post->post_content, $shortcode)) {
+                    $shortcodes[$shortcode] = true;
+                }
+            }
+        }
+
+        if (isset($shortcodes['next-on'])) {
+            $path = KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/next-on/next-on.css';
+            wp_enqueue_style(
+                'kcg-next-on',
+                plugins_url('includes/shortcodes/next-on/next-on.css', __FILE__),
+                array(),
+                filemtime($path)
+            );
+        }
+
+        if (isset($shortcodes['next-on-card']) || isset($shortcodes['next-on-card-swiper'])) {
+            KCG_Elvanto_Event_Card::enqueue_assets();
+        }
+
+        if (isset($shortcodes['next-on-card-swiper'])) {
+            $swiper_path = KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/event-swiper/';
+            $swiper_url = plugins_url('includes/shortcodes/event-swiper/', __FILE__);
+            wp_enqueue_style(
+                'swiper-css',
+                'https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css'
+            );
+            wp_enqueue_style(
+                'elvanto-swiper-css',
+                $swiper_url . 'elvanto-swiper.css',
+                array(),
+                filemtime($swiper_path . 'elvanto-swiper.css')
+            );
+            wp_enqueue_script(
+                'swiper-js',
+                'https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js',
+                array(),
+                null,
+                true
+            );
+            wp_enqueue_script(
+                'elvanto-swiper-js',
+                $swiper_url . 'elvanto-swiper.js',
+                array('swiper-js'),
+                filemtime($swiper_path . 'elvanto-swiper.js'),
+                true
+            );
+        }
+
+        if (isset($shortcodes['kcg_preaching_table'])) {
+            $table_path = KCG_ELVANTO_SHORTCODES_PATH . 'includes/shortcodes/preaching-table/';
+            $table_url = plugins_url('includes/shortcodes/preaching-table/', __FILE__);
+            wp_enqueue_style(
+                'kcg-preaching-table',
+                $table_url . 'preaching-table.css',
+                array(),
+                filemtime($table_path . 'preaching-table.css')
+            );
+            wp_enqueue_script(
+                'kcg-preaching-table',
+                $table_url . 'preaching-table.js',
+                array(),
+                filemtime($table_path . 'preaching-table.js'),
+                true
+            );
         }
     }
 

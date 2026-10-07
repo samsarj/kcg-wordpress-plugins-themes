@@ -24,55 +24,6 @@ class KCG_Elvanto_Preaching_Table_Shortcode {
 
     public function register() {
         add_shortcode('kcg_preaching_table', array($this, 'render'));
-        add_action('rest_api_init', array($this, 'register_rest_routes'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'));
-    }
-
-    public function enqueue_assets() {
-        $url = plugin_dir_url(__FILE__);
-        wp_enqueue_style('kcg-preaching-table', $url . 'preaching-table.css', array(), filemtime(__DIR__ . '/preaching-table.css'));
-        wp_enqueue_script('kcg-preaching-table', $url . 'preaching-table.js', array(), filemtime(__DIR__ . '/preaching-table.js'), true);
-    }
-
-    public function register_rest_routes() {
-        register_rest_route(
-            'kcg-elvanto/v1',
-            '/preaching-services',
-            array(
-                'methods' => 'GET',
-                'callback' => array($this, 'get_preaching_services'),
-                'permission_callback' => '__return_true',
-            )
-        );
-    }
-
-    /**
-     * Upcoming services from merged_events.
-     */
-    public function get_preaching_services($request) {
-        if (!class_exists('KCG_Elvanto_Cache')) {
-            return new WP_REST_Response(
-                array(
-                    'success' => false,
-                    'message' => 'The Elvanto API provider cache is not available.',
-                    'services' => array(),
-                    'count' => 0,
-                ),
-                503
-            );
-        }
-
-        $services = KCG_Elvanto_Event_Query::get(array('source' => 'service', 'limit' => 0));
-
-        return new WP_REST_Response(
-            array(
-                'success' => true,
-                'message' => 'Services retrieved successfully.',
-                'services' => $services,
-                'count' => count($services),
-            ),
-            200
-        );
     }
 
     public function render($atts = array()) {
@@ -80,9 +31,6 @@ class KCG_Elvanto_Preaching_Table_Shortcode {
             array_merge(
                 KCG_Elvanto_Event_Query::filter_defaults('service'),
                 array(
-                    'show_time' => 'no',
-                    'show_location' => 'no',
-                    'show_description' => 'no',
                     'class' => 'kcg-preaching-table',
                 )
             ),
@@ -303,7 +251,8 @@ class KCG_Elvanto_Preaching_Table_Shortcode {
             $date_display = $service_datetime
                 ? wp_date(get_option('date_format'), $service_datetime->getTimestamp(), $service_datetime->getTimezone())
                 : ($service['date'] ?? '');
-            $html .= '<td class="date-cell">' . esc_html($date_display) . '</td>';
+            $sort_date = $service_datetime ? (string) $service_datetime->getTimestamp() : '';
+            $html .= '<td class="date-cell" data-sort-value="' . esc_attr($sort_date) . '">' . esc_html($date_display) . '</td>';
             
             // Series column
             $series = $this->get_service_series_name($service);

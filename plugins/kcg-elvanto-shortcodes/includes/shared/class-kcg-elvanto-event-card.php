@@ -54,6 +54,7 @@ class KCG_Elvanto_Event_Card
 
         $formatted_date = '';
         $formatted_time = '';
+        $description = self::format_description($event['description'] ?? '');
 
         $event_time = trim((string) ($event['time'] ?? ''));
         $dt = KCG_Elvanto_Event_Query::datetime($event);
@@ -110,9 +111,9 @@ class KCG_Elvanto_Event_Card
                     <?php endif; ?>
                 </div>
 
-                <?php if ($atts['show_description'] && !empty($event['description'])): ?>
+                <?php if ($atts['show_description'] && '' !== $description): ?>
                     <div class="event-description">
-                        <?php echo wp_kses_post(wpautop($event['description'])); ?>
+                        <?php echo $description; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -168,10 +169,11 @@ class KCG_Elvanto_Event_Card
         $image_radius = $card_padding;
         $compact = 'compact' === ( $atts['layout'] ?? '' );
         if ( $compact ) {
-            $card_padding = '0.75rem';
+            $card_padding = '0.5rem';
         }
         $has_picture = ! empty( $event['picture'] );
         $title = esc_html($event['title'] ?? 'Event');
+        $description = self::format_description($event['description'] ?? '');
         $dt = KCG_Elvanto_Event_Query::datetime($event);
         $lines = array();
 
@@ -191,18 +193,18 @@ class KCG_Elvanto_Event_Card
         if (!empty($event['location'])) {
             $lines[] = '📍 ' . esc_html($event['location']);
         }
-        $html = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;"><tr><td style="padding:' . esc_attr($card_padding) . ';border:0.0625rem solid ' . esc_attr($border_color) . ';border-radius:' . esc_attr($card_radius) . ';background-color:' . esc_attr($background_color) . ';color:#222222;text-align:' . ( $compact ? 'left' : 'center' ) . ';">';
+        $html = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;"><tr><td style="padding:' . esc_attr($card_padding) . ';border:0.0625rem solid ' . esc_attr($border_color) . ';border-radius:' . esc_attr($card_radius) . ';background-color:' . esc_attr($background_color) . ';box-shadow:0 0 1rem rgba(0,0,0,0.2);color:#222222;text-align:' . ( $compact ? 'left' : 'center' ) . ';">';
 
         if ( $compact ) {
             $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
             if ( $has_picture ) {
-                $html .= '<td valign="top" style="width:5rem;padding-right:0.75rem;">';
-                $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="80" height="80" style="display:block;width:5rem;height:5rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
+                $html .= '<td valign="top" style="width:6rem;padding-right:1rem;">';
+                $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="96" height="96" style="display:block;width:6rem;height:6rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
                 $html .= '</td>';
             }
             $html .= '<td valign="top" style="vertical-align:top;">';
         } elseif ( $has_picture ) {
-            $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="96" height="96" style="display:block;margin:0 auto 0.75rem;width:6rem;height:6rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
+            $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="96" height="96" style="display:block;margin:0 auto 0.5rem;width:6rem;height:6rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
         }
         $html .= '<h4 style="margin:0;font-size:' . ( $compact ? '1rem' : '1.25rem' ) . ';line-height:1.3;font-weight:bold;">' . $title . '</h4>';
         if (!empty($event['subtitle'])) {
@@ -215,8 +217,9 @@ class KCG_Elvanto_Event_Card
             $margin_top = 0 === $index ? ( $compact ? 'margin-top:0.375rem;' : 'margin-top:0.5rem;' ) : '';
             $html .= '<div style="font-size:' . ( $compact ? '0.8125rem' : '0.9375rem' ) . ';line-height:1.5;' . $margin_top . '">' . $line . '</div>';
         }
-        if ($atts['show_description'] && !empty($event['description'])) {
-            $html .= '<div style="font-size:0.9375rem;line-height:1.5;margin-top:0.75rem;">' . wp_kses_post(wpautop($event['description'])) . '</div>';
+        if ($atts['show_description'] && '' !== $description) {
+            $description_padding = $compact ? '' : 'padding-left:0.5rem;padding-right:0.5rem;';
+            $html .= '<div style="font-size:0.9375rem;line-height:1.5;margin-top:0.375rem;' . $description_padding . '">' . $description . '</div>';
         }
 
         if ($atts['show_buttons']) {
@@ -228,7 +231,7 @@ class KCG_Elvanto_Event_Card
                 $buttons[] = array('Register', $event['link_register'], true);
             }
             if ($buttons) {
-                $html .= '<table role="presentation" align="' . ( $compact ? 'left' : 'center' ) . '" cellpadding="0" cellspacing="0" border="0" style="margin:' . ( $compact ? '0.5rem 0 0' : '1rem auto 0' ) . ';"><tr>';
+                $html .= '<table role="presentation" align="' . ( $compact ? 'left' : 'center' ) . '" cellpadding="0" cellspacing="0" border="0" style="margin:' . ( $compact ? '0.5rem 0 0' : '0.5rem auto 0' ) . ';"><tr>';
                 foreach ($buttons as $i => $b) {
                     $style = $b[2]
                         ? 'background-color:' . $color . ';border:0.125rem solid ' . $color . ';color:#ffffff;'
@@ -246,6 +249,27 @@ class KCG_Elvanto_Event_Card
         }
 
         return $html . '</td></tr></table>';
+    }
+
+    private static function format_description($description)
+    {
+        $description = trim((string) $description);
+        if ('' === $description) {
+            return '';
+        }
+
+        $html = wp_kses_post(wpautop($description));
+        $text = html_entity_decode(
+            wp_strip_all_tags($html),
+            ENT_QUOTES | ENT_HTML5,
+            get_bloginfo('charset') ?: 'UTF-8'
+        );
+
+        if (1 !== preg_match('/[^\s\x{00A0}]/u', $text) && !preg_match('/<(?:img|video|audio|iframe)\b/i', $html)) {
+            return '';
+        }
+
+        return $html;
     }
 
     /**

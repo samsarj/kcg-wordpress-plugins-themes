@@ -12,7 +12,6 @@
     function initPreachingTable() {
         // Add sorting functionality to table headers
         document.querySelectorAll('.kcg-preaching-table thead th').forEach(function(th) {
-            th.style.cursor = 'pointer';
             th.addEventListener('click', function() {
                 handleTableSort(th);
             });
@@ -52,15 +51,16 @@
         
         // Sort rows
         rows.sort(function(a, b) {
-            const cellA = a.children[headerIndex].textContent.trim();
-            const cellB = b.children[headerIndex].textContent.trim();
-            
-            // Try to parse as date if it's the date column
+            const cellAElement = a.children[headerIndex];
+            const cellBElement = b.children[headerIndex];
+            const cellA = cellAElement.textContent.trim();
+            const cellB = cellBElement.textContent.trim();
+
             if (headerIndex === 0) {
-                const dateA = new Date(cellA);
-                const dateB = new Date(cellB);
-                
-                if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                const dateA = cellAElement.dataset.sortValue ? Number(cellAElement.dataset.sortValue) : NaN;
+                const dateB = cellBElement.dataset.sortValue ? Number(cellBElement.dataset.sortValue) : NaN;
+
+                if (Number.isFinite(dateA) && Number.isFinite(dateB)) {
                     return isAscending ? dateA - dateB : dateB - dateA;
                 }
             }
@@ -84,52 +84,6 @@
     }
     
     /**
-     * Load preaching services via REST API
-     */
-    function loadPreachingServices(callback) {
-        if (typeof wpApiSettings === 'undefined') {
-            console.warn('WordPress REST API not available');
-            return;
-        }
-        
-        const url = wpApiSettings.root + 'kcg-elvanto/v1/preaching-services';
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (typeof callback === 'function') {
-                    callback(data);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading preaching services:', error);
-            });
-    }
-    
-    /**
-     * Add table sorting styles dynamically
-     */
-    function addSortingStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-            .kcg-preaching-table thead th.sort-asc::after {
-                content: ' ↑';
-                font-size: 0.8em;
-            }
-            
-            .kcg-preaching-table thead th.sort-desc::after {
-                content: ' ↓';
-                font-size: 0.8em;
-            }
-            
-            .kcg-preaching-table tbody tr.even-row {
-                background-color: #fafafa;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    /**
      * Initialize on DOM ready
      */
     function onDOMReady(callback) {
@@ -142,13 +96,7 @@
     
     // Initialize when DOM is ready
     onDOMReady(function() {
-        addSortingStyles();
         initPreachingTable();
     });
     
-    // Export functions for external use
-    window.kcgPreachingTable = {
-        loadServices: loadPreachingServices,
-        init: initPreachingTable
-    };
 })();

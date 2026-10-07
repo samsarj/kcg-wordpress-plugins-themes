@@ -1,7 +1,7 @@
 <?php
 /**
- * Detects when shortcodes are being rendered inside a MailPoet email (block email editor),
- * so they can output email-safe, fully inline-styled markup instead of the web version.
+ * Tracks recognized email-editor contexts and allows send integrations to opt in
+ * to email-safe, fully inline-styled shortcode markup through a filter.
  */
 
 if (!defined('ABSPATH')) {
@@ -20,13 +20,10 @@ class KCG_Elvanto_Email_Context
         add_filter('woocommerce_email_content_renderer_styles', array(__CLASS__, 'end'));
         add_filter('woocommerce_email_renderer_styles', array(__CLASS__, 'end'));
 
-        // MailPoet integration: detect common MailPoet admin/editor contexts and cron sends.
+        // MailPoet editor integration; sending workers should use the explicit filter below.
         // MailPoet 3 exposes the MailPoet\API\API class; use that to avoid hard dependency.
         if (class_exists('MailPoet\\API\\API') || defined('MAILPOET_VERSION')) {
-            // When editing or previewing in admin (MailPoet editor pages include "mailpoet" in the page query arg).
             add_action('admin_init', array(__CLASS__, 'maybe_start_mailpoet_admin'));
-            // When MailPoet sends via cron/worker, mark email context during that request.
-            add_action('init', array(__CLASS__, 'maybe_start_mailpoet_send'));
         }
     }
 
@@ -66,30 +63,9 @@ class KCG_Elvanto_Email_Context
         }
     }
 
-    /**
-     * Heuristic: when MailPoet is sending (cron or similar) mark context as email so shortcodes render email-safe markup.
-     */
-    public static function maybe_start_mailpoet_send()
-    {
-        if (!class_exists('MailPoet\\API\\API') && !defined('MAILPOET_VERSION')) {
-            return;
-        }
-
-        // If WordPress is running a cron job and MailPoet is present, assume this is an email render/send context.
-        if (defined('DOING_CRON') && DOING_CRON) {
-            self::start();
-            return;
-        }
-
-        // If REST request from MailPoet editor or AJAX preview, try to detect common parameters.
-        if (wp_doing_ajax() && isset($_REQUEST['action']) && stripos((string) $_REQUEST['action'], 'mailpoet') !== false) {
-            self::start();
-            return;
-        }
-    }
-
     public static function is_email()
     {
+        // Send workers can opt in only around actual newsletter rendering.
         return (bool) apply_filters('kcg_elvanto_is_email', self::$active);
     }
 }
