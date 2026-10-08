@@ -153,7 +153,7 @@ class KCG_Elvanto_Shortcodes_Admin {
                         'amount' => 'Email only: positive maximum number of cards. Without range, defaults to one card.',
                         'range' => 'Email only: future end range, such as 14 days, 6 weeks, or 3 months. With a range and no amount, show all matches in the range.',
                         'from' => 'Email only: optional start boundary, next-week (next Monday) or a positive offset such as 7 days. Combine with range to select a window.',
-                        'layout' => 'Email only: compact places the image beside smaller event details and buttons. Other values use the full card layout.',
+                        'layout' => 'Email only: compact places a smaller image beside smaller event details and text links. Other values use the full card layout.',
                     ));
                     ?>
                     <p>Website output remains a single compact card. Email cards fill their containing width; constrain them with the newsletter editor's group/layout controls. Amount, range, from, and layout affect email output only. Defaults to the next matching service or event.</p>

@@ -156,7 +156,7 @@ class KCG_Elvanto_Event_Card
     }
 
     /**
-     * Email-safe card: table layout and inline styles only (no CSS variables, flex or stylesheet).
+     * Email-safe card: table layout and inline styles, with a compact-only mobile media query.
      */
     private static function render_email($event, $atts)
     {
@@ -187,22 +187,27 @@ class KCG_Elvanto_Event_Card
                 $when[] = '⏰ ' . esc_html(wp_date(get_option('time_format'), $dt->getTimestamp(), $tz));
             }
             if ($when) {
-                $lines[] = implode(' &nbsp;|&nbsp; ', $when);
+                $lines[] = $compact
+                    ? array('date_time' => $when)
+                    : implode(' &nbsp;|&nbsp; ', $when);
             }
         }
         if (!empty($event['location'])) {
             $lines[] = '📍 ' . esc_html($event['location']);
         }
-        $html = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;"><tr><td style="padding:' . esc_attr($card_padding) . ';border:0.0625rem solid ' . esc_attr($border_color) . ';border-radius:' . esc_attr($card_radius) . ';background-color:' . esc_attr($background_color) . ';box-shadow:0 0 1rem rgba(0,0,0,0.2);color:#222222;text-align:' . ( $compact ? 'left' : 'center' ) . ';">';
+        $html = $compact
+            ? '<style type="text/css">@media only screen and (max-width:480px){.kcg-elvanto-compact-image{display:none!important}.kcg-elvanto-compact-content{text-align:center!important}.kcg-elvanto-compact-actions{float:none!important;margin-left:auto!important;margin-right:auto!important}.kcg-elvanto-compact-actions td{text-align:center!important}.kcg-elvanto-compact-date-time__item{display:block!important}.kcg-elvanto-compact-date-time__separator{display:none!important}}</style>'
+            : '';
+        $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;"><tr><td style="padding:' . esc_attr($card_padding) . ';border:0.0625rem solid ' . esc_attr($border_color) . ';border-radius:' . esc_attr($card_radius) . ';background-color:' . esc_attr($background_color) . ';box-shadow:0 0 1rem rgba(0,0,0,0.2);color:#222222;text-align:' . ( $compact ? 'left' : 'center' ) . ';">';
 
         if ( $compact ) {
             $html .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>';
             if ( $has_picture ) {
-                $html .= '<td valign="top" style="width:6rem;padding-right:1rem;">';
-                $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="96" height="96" style="display:block;width:6rem;height:6rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
+                $html .= '<td class="kcg-elvanto-compact-image" valign="middle" style="width:4rem;padding-right:0.75rem;vertical-align:middle;">';
+                $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="64" height="64" style="display:block;width:4rem;height:4rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
                 $html .= '</td>';
             }
-            $html .= '<td valign="top" style="vertical-align:top;">';
+            $html .= '<td class="kcg-elvanto-compact-content" valign="top" style="vertical-align:top;">';
         } elseif ( $has_picture ) {
             $html .= '<img src="' . esc_url($event['picture']) . '" alt="' . esc_attr($event['title'] ?? 'Event') . '" width="96" height="96" style="display:block;margin:0 auto 0.5rem;width:6rem;height:6rem;object-fit:cover;border-radius:' . esc_attr($image_radius) . ';border:0;">';
         }
@@ -213,13 +218,26 @@ class KCG_Elvanto_Event_Card
         if ($atts['show_preacher'] && self::has_preacher($event)) {
             $html .= '<div style="font-size:0.75rem;line-height:1.4;color:#555555;">' . esc_html($event['preacher']) . '</div>';
         }
+        $details_font_size = $compact ? '0.875rem' : '0.9375rem';
         foreach ($lines as $index => $line) {
-            $margin_top = 0 === $index ? ( $compact ? 'margin-top:0.375rem;' : 'margin-top:0.5rem;' ) : '';
-            $html .= '<div style="font-size:' . ( $compact ? '0.8125rem' : '0.9375rem' ) . ';line-height:1.5;' . $margin_top . '">' . $line . '</div>';
+            $margin_top = 0 === $index ? ( $compact ? 'margin-top:0.25rem;' : 'margin-top:0.5rem;' ) : '';
+            if ( $compact && is_array($line) && isset($line['date_time']) ) {
+                $html .= '<div class="kcg-elvanto-compact-date-time" style="font-size:' . $details_font_size . ';line-height:1.5;' . $margin_top . '">';
+                foreach ($line['date_time'] as $when_index => $when_item) {
+                    if (0 < $when_index) {
+                        $html .= '<span class="kcg-elvanto-compact-date-time__separator" style="display:inline;">&nbsp;|&nbsp;</span>';
+                    }
+                    $html .= '<span class="kcg-elvanto-compact-date-time__item" style="display:inline;">' . $when_item . '</span>';
+                }
+                $html .= '</div>';
+                continue;
+            }
+            $html .= '<div style="font-size:' . $details_font_size . ';line-height:1.5;' . $margin_top . '">' . $line . '</div>';
         }
         if ($atts['show_description'] && '' !== $description) {
             $description_padding = $compact ? '' : 'padding-left:0.5rem;padding-right:0.5rem;';
-            $html .= '<div style="font-size:0.9375rem;line-height:1.5;margin-top:0.375rem;' . $description_padding . '">' . $description . '</div>';
+            $description_font_size = $compact ? $details_font_size : '0.9375rem';
+            $html .= '<div style="font-size:' . $description_font_size . ';line-height:1.5;margin-top:0.375rem;' . $description_padding . '">' . $description . '</div>';
         }
 
         if ($atts['show_buttons']) {
@@ -231,14 +249,17 @@ class KCG_Elvanto_Event_Card
                 $buttons[] = array('Register', $event['link_register'], true);
             }
             if ($buttons) {
-                $html .= '<table role="presentation" align="' . ( $compact ? 'left' : 'center' ) . '" cellpadding="0" cellspacing="0" border="0" style="margin:' . ( $compact ? '0.5rem 0 0' : '0.5rem auto 0' ) . ';"><tr>';
+                $html .= '<table role="presentation" class="' . ( $compact ? 'kcg-elvanto-compact-actions' : '' ) . '"' . ( $compact ? '' : ' align="center"' ) . ' cellpadding="0" cellspacing="0" border="0" style="margin:' . ( $compact ? '0rem 0 0' : '0.5rem auto 0' ) . ';"><tr>';
                 foreach ($buttons as $i => $b) {
                     $style = $b[2]
                         ? 'background-color:' . $color . ';border:0.125rem solid ' . $color . ';color:#ffffff;'
                         : 'background-color:#ffffff;border:0.125rem solid ' . $color . ';color:' . $color . ';';
                     $button_padding = $compact ? '0.3rem 0.55rem' : '0.625rem 1.25rem';
                     $button_font_size = $compact ? '0.75rem' : '0.9375rem';
-                    $html .= '<td style="padding:0 ' . ($i < count($buttons) - 1 ? '0.25rem 0 0' : '0 0 0.25rem') . ';"><a href="' . esc_url($b[1]) . '" target="_blank" style="display:inline-block;padding:' . $button_padding . ';border-radius:0.375rem;font-size:' . $button_font_size . ';font-weight:bold;text-decoration:none;' . $style . '">' . esc_html($b[0]) . '</a></td>';
+                    $link_style = $compact
+                        ? 'display:inline;color:' . $color . ';font-size:0.75rem;font-weight:normal;text-decoration:underline;'
+                        : 'display:inline-block;padding:' . $button_padding . ';border-radius:0.375rem;font-size:' . $button_font_size . ';font-weight:bold;text-decoration:none;' . $style;
+                    $html .= '<td style="padding:0 ' . ($i < count($buttons) - 1 ? '0.25rem 0 0' : '0 0 0.25rem') . ';"><a href="' . esc_url($b[1]) . '" target="_blank" style="' . $link_style . '">' . esc_html($b[0]) . '</a></td>';
                 }
                 $html .= '</tr></table>';
             }
